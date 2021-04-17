@@ -1,6 +1,7 @@
 import { BootScene } from "./scenes/boot-scene";
 import { GameScene } from "./scenes/game.scene";
-import { MainMenuScene } from "./scenes/main-menu-scene";
+import { GameWinScene } from "./scenes/game-win.scene";
+import { GameLoseScene } from "./scenes/game-lose.scene";
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -15,8 +16,8 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   fps: {
-    target: 60,
+    target: 20,
     forceSetTimeOut: true,
   },
-  scene: [BootScene, MainMenuScene, GameScene],
+  scene: [BootScene, GameScene, GameWinScene, GameLoseScene],
 };

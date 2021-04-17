@@ -2,7 +2,7 @@ export class BootScene extends Phaser.Scene {
   // database params
   private destroyCard: boolean = false;
   private timeCardIsVisible: number = 800; // - 200ms  -> card turning time 200 ms
-  private timeToComplete: number | null = 3;
+  private timeToComplete: number | null = 20;
   private maxAttempts: number | null = null;
 
   constructor() {
@@ -27,6 +27,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image("1", "../../assets/images/1.jpg");
     this.load.image("1", "../../assets/images/2.png");
     this.load.image("1", "../../assets/images/3.jpg");
+
+    this.load.image("star", "../../assets/images/star.png");
   }
 
   create(): void {
@@ -34,13 +36,13 @@ export class BootScene extends Phaser.Scene {
       "bear",
       "eagle",
       "koala",
-      "parrot",
-      "PT_flag",
-      "DE_flag",
-      "1",
-      "2",
-      "3",
-      "back",
+      // "parrot",
+      // "PT_flag",
+      // "DE_flag",
+      // "1",
+      // "2",
+      // "3",
+      // "back",
     ];
     const imagesArr2 = [
       "bear",

@@ -22,6 +22,7 @@ export class GameScene extends Phaser.Scene {
   private text: Phaser.GameObjects.Text;
   private displayText: string;
   private timedEvent: Phaser.Time.TimerEvent;
+  private matches: number = 0;
 
   // database params
   private numCardsHorizontal: number;
@@ -194,8 +195,18 @@ export class GameScene extends Phaser.Scene {
           this.cards[elem.index].getCard().disableInteractive();
         }
       });
-      // no match
+      this.matches++;
+      // count matches
+      if (this.matches === this.imagesArr.length) {
+        CONST.GAME_OVER = true;
+        this.scene.launch("GameWinScene", {
+          width: this.gameWidth,
+          height: this.gameHeight,
+          win: true,
+        });
+      }
     } else {
+      // no match
       console.log("try again");
 
       // flip the cards
@@ -222,6 +233,12 @@ export class GameScene extends Phaser.Scene {
   private onEventTimeOver(): void {
     console.log("time over");
     CONST.GAME_OVER = true;
+
+    this.scene.launch("GameWinScene", {
+      width: this.gameWidth,
+      height: this.gameHeight,
+      win: false,
+    });
   }
 
   update(): void {
