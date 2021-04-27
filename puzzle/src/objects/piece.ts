@@ -13,7 +13,8 @@ export class Piece {
   private left: number;
   private lineWidth: number;
   private fillColor: number;
-  private g: Phaser.GameObjects.Graphics;
+
+  private graphics: Phaser.GameObjects.Graphics;
 
   constructor(
     scene: Phaser.Scene,
@@ -27,8 +28,7 @@ export class Piece {
     bottom: number,
     left: number,
     lineWidth: number,
-    fillColor: number,
-    g: Phaser.GameObjects.Graphics
+    fillColor: number
   ) {
     this.scene = scene;
     this.pieceW = pieceW;
@@ -42,19 +42,16 @@ export class Piece {
     this.left = left;
     this.lineWidth = lineWidth;
     this.fillColor = fillColor;
-    this.g = g;
+
+    this.graphics = this.scene.add.graphics();
   }
 
-  public drawPiece(
-    posX: number,
-    posY: number,
-    depth: number
-  ): Phaser.GameObjects.Graphics {
-    // var g = this.scene.add.graphics();
-    // g.lineStyle(this.lineWidth, 0x000000, 1);
-
-    var path = this.scene.add.path();
-    var g_vec1, g_vec2, line1, line2;
+  public drawPiece(posX: number, posY: number, depth: number): void {
+    var path = this.scene.add.path(posX, posY);
+    var g_vec1: Phaser.Math.Vector2,
+      g_vec2: Phaser.Math.Vector2,
+      line1: Phaser.Curves.Line,
+      line2: Phaser.Curves.Line;
     const startPoint = 4 / 10,
       endPoint = 6 / 10,
       controlPoint_1 = 3 / 10,
@@ -316,18 +313,23 @@ export class Piece {
       path.add(line1);
     }
 
-    path.draw(this.g);
+    this.graphics.beginPath();
 
-    // FILL PATH
+    path.closePath();
+    path.draw(this.graphics);
+
     var points = path.getPoints();
-    //g.fillStyle(0x4b86b4, 0.95);
-    this.g.fillStyle(0x696969, 1);
-    this.g.fillStyle(this.fillColor, 1);
-    this.g.fillPoints(points);
+    this.graphics.lineStyle(this.lineWidth, 0x000000, 1);
+    this.graphics.fillStyle(this.fillColor, 1);
+    this.graphics.fillPoints(points);
 
-    this.g.setPosition(posX, posY);
-    this.g.setDepth(depth);
+    this.graphics.setPosition(posX, posY);
+    this.graphics.setDepth(depth);
 
-    return this.g;
+    this.graphics.closePath();
+  }
+
+  public getPieceGraphObj(): Phaser.GameObjects.Graphics {
+    return this.graphics;
   }
 }

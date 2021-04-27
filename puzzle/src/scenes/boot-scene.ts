@@ -37,6 +37,11 @@ export class BootScene extends Phaser.Scene {
     await axios
       .get(get_game_str)
       .then((resp) => {
+        this.load.audio("select", "assets/sounds/select.mp3");
+        this.load.audio("drop_piece", "assets/sounds/drop.mp3");
+        this.load.audio("right_place", "assets/sounds/right_place.mp3");
+        this.load.audio("complete_puzzle", "assets/sounds/complete.mp3");
+
         console.log(resp.data);
 
         const config = resp.data.config;
