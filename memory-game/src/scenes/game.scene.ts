@@ -2,10 +2,7 @@ import { CONST } from "../const/const";
 import { Card } from "../objects/card";
 import { TopBar } from "../objects/top-bar";
 import { Grid } from "../objects/grid";
-import { Text } from "../objects/text";
-import { Clock } from "../objects/clock";
-
-import { ObjectSize, CardFlipInfo } from "../interfaces/utils.interface";
+import { CardFlipInfo } from "../interfaces/utils.interface";
 import { shuffle } from "../utils/shuffleArray";
 
 export class GameScene extends Phaser.Scene {
@@ -30,8 +27,9 @@ export class GameScene extends Phaser.Scene {
   private destroyCard: boolean;
   private timeCardIsVisible: number;
   private imagesArr: string[];
-  private timeToComplete: number;
+  private timeToComplete: number | null;
   private maxAttempts: number;
+  private backCardId: string;
 
   // game flow
   private flippedCardsIndex: CardFlipInfo[] = [];
@@ -51,6 +49,7 @@ export class GameScene extends Phaser.Scene {
     this.imagesArr = data.imagesArr;
     this.timeToComplete = data.timeToComplete;
     this.maxAttempts = data.maxAttempts;
+    this.backCardId = data.backCardId;
 
     switch (this.imagesArr.length) {
       case 3:
@@ -99,7 +98,14 @@ export class GameScene extends Phaser.Scene {
     // console.log(shuffle(numbersArr));
     shuffle(numbersArr).forEach((number, index) =>
       this.cards.push(
-        new Card(this, width, height, number, this.imagesArr[number], "PT_flag")
+        new Card(
+          this,
+          width,
+          height,
+          number,
+          this.imagesArr[number],
+          this.backCardId
+        )
       )
     );
 
@@ -242,7 +248,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(): void {
-    if (this.timeToComplete) {
+    if (this.timeToComplete && !CONST.GAME_OVER) {
       this.text.setText(
         `${this.displayText}${(
           this.timeToComplete -
