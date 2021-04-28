@@ -4,6 +4,7 @@ export class BootScene extends Phaser.Scene {
   // general vars
 
   // database params
+  // private timeToComplete: number | null;
   private timeToComplete: number | null;
   private piecesSize: number | null;
   private puzzleImage: number | null;
@@ -28,9 +29,8 @@ export class BootScene extends Phaser.Scene {
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    const text_prefix = "http://localhost";
     // const prefix = "";
-    const prefix = text_prefix;
+    const prefix = "http://localhost";
 
     const get_game_str = prefix + "/api/games/game/" + this.gameId;
 
@@ -42,10 +42,12 @@ export class BootScene extends Phaser.Scene {
         this.load.audio("right_place", "assets/sounds/right_place.mp3");
         this.load.audio("complete_puzzle", "assets/sounds/complete.mp3");
 
+        this.load.image("star", "assets/images/star.png");
+
         console.log(resp.data);
 
         const config = resp.data.config;
-        this.timeToComplete = config.time_to_complete;
+        // this.timeToComplete = config.time_to_complete;
         this.piecesSize = config.pieces_size;
 
         const assets = resp.data.assets;
@@ -57,8 +59,6 @@ export class BootScene extends Phaser.Scene {
           puzzleImage.id,
           prefix + puzzleImage.path + puzzleImage.server_path
         );
-
-        // this.load.image("star", "assets/images/star.png");
 
         this.load.start();
       })

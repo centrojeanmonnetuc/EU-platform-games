@@ -1,3 +1,4 @@
+import { LockPosition, PieceObj } from "../interfaces/utils.interface";
 export class Piece {
   private scene: Phaser.Scene;
 
@@ -15,6 +16,17 @@ export class Piece {
   private fillColor: number;
 
   private graphics: Phaser.GameObjects.Graphics;
+  private hitAreaPoints: any;
+
+  /*
+   *Image
+   */
+  private image: Phaser.GameObjects.Image;
+  private x_offset: number;
+  private y_offset: number;
+  private line_ref: number;
+  private column_ref: number;
+  private lock_pos: LockPosition;
 
   constructor(
     scene: Phaser.Scene,
@@ -42,6 +54,10 @@ export class Piece {
     this.left = left;
     this.lineWidth = lineWidth;
     this.fillColor = fillColor;
+
+    this.pieceW_zommedOut = 100;
+    this.pieceH_zommedOut = 100;
+    this.pieceRadius_zommedOut = 20;
 
     this.graphics = this.scene.add.graphics();
   }
@@ -318,12 +334,29 @@ export class Piece {
     path.closePath();
     path.draw(this.graphics);
 
-    var points = path.getPoints();
-    this.graphics.lineStyle(this.lineWidth, 0x000000, 1);
+    this.hitAreaPoints = path.getPoints();
+    this.graphics.lineStyle(this.lineWidth, 0x000000, 0.5);
     this.graphics.fillStyle(this.fillColor, 1);
-    this.graphics.fillPoints(points);
+    this.graphics.fillPoints(this.hitAreaPoints);
+    //align piece to the center
 
-    this.graphics.setPosition(posX, posY);
+    if (this.left === 1) {
+      posX += this.pieceRadius / 2;
+    }
+    if (this.right === 1) {
+      posX -= this.pieceRadius / 2;
+    }
+    if (this.top === 1) {
+      posY += this.pieceRadius / 2;
+    }
+    if (this.bottom === 1) {
+      posY -= this.pieceRadius / 2;
+    }
+
+    // console.log(posX);
+    // console.log(posY);
+
+    this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
     this.graphics.setDepth(depth);
 
     this.graphics.closePath();
@@ -331,5 +364,90 @@ export class Piece {
 
   public getPieceGraphObj(): Phaser.GameObjects.Graphics {
     return this.graphics;
+  }
+
+  public getHitAreaPoints(): any {
+    return this.hitAreaPoints;
+  }
+
+  public bindImageWithPiece(
+    image: Phaser.GameObjects.Image,
+    lineIndex: number,
+    columnIndex: number
+  ): Piece {
+    this.image = image;
+
+    this.image.setMask(this.graphics.createGeometryMask());
+    this.x_offset = this.graphics.x - this.image.x;
+    this.y_offset = this.graphics.y - this.image.y;
+    this.line_ref = lineIndex;
+    this.column_ref = columnIndex;
+    this.lock_pos = {
+      x: this.graphics.x,
+      y: this.graphics.y,
+    };
+
+    this.image.setInteractive();
+    this.scene.input.setDraggable(this.image);
+    this.image.input.draggable = true;
+
+    this.image.setData("image", { l: lineIndex, c: columnIndex });
+
+    return this;
+  }
+
+  public resizeBindedPiece(
+    pieceW: number,
+    pieceH: number,
+    pieceRadius: number,
+    scaleValue: number
+  ): void {
+    this.pieceW = pieceW;
+    this.pieceH = pieceH;
+    this.pieceRadius = pieceRadius;
+    this.image.setScale(scaleValue);
+    this.graphics.setScale(scaleValue);
+  }
+
+  public setPiecePosition(posX: number, posY: number): void {
+    if (this.left === 1) {
+      posX += this.pieceRadius / 2;
+    }
+    if (this.right === 1) {
+      posX -= this.pieceRadius / 2;
+    }
+    if (this.top === 1) {
+      posY += this.pieceRadius / 2;
+    }
+    if (this.bottom === 1) {
+      posY -= this.pieceRadius / 2;
+    }
+
+    this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
+  }
+
+  public setImagePosition(posX: number, posY: number): void {
+    this.image.setPosition(posX, posY);
+  }
+
+  public setBindedPiecePosition(posX: number, posY: number): void {
+    // const final_x = posX - this.x_offset;
+    // const final_y = posY - this.y_offset;
+    // this.image.setPosition(final_x, final_y);
+    // this.graphics.setPosition(final_x + this.x_offset, final_y + this.y_offset);
+    this.setPiecePosition(posX, posY);
+    this.setImagePosition(posX, posY);
+  }
+
+  public setZoomIn(): void {
+    this.pieceW_zommedIn = this.pieceW;
+    this.pieceH_zommedIn = this.pieceH;
+    this.pieceRadius_zommedIn = this.pieceRadius;
+  }
+
+  public setZoomOut(scaleValue: number): void {
+    this.pieceW_zommedOut = scaleValue * this.pieceW;
+    this.pieceH_zommedOut = scaleValue * this.pieceH;
+    this.pieceRadius_zommedOut = scaleValue * this.pieceRadius;
   }
 }

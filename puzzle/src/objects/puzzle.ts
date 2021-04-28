@@ -1,6 +1,10 @@
 import { CONST } from "../const/const";
 import { Piece } from "./piece";
-import { PieceInfo, PieceObj } from "../interfaces/utils.interface";
+import {
+  PieceInfo,
+  PieceObj,
+  PiecesBoard,
+} from "../interfaces/utils.interface";
 import { dualSocketPieceVerifier, getRndInteger } from "../utils/puzzle";
 
 export class Puzzle {
@@ -12,8 +16,10 @@ export class Puzzle {
   private pieceW: number;
   private pieceH: number;
   private pieceRadius: number;
+  private pieceScaleValue: number;
 
   private piecesInfoArr: PieceInfo[][];
+  private piecesBoardDimensions: PiecesBoard;
 
   constructor(
     scene: Phaser.Scene,
@@ -21,7 +27,9 @@ export class Puzzle {
     numVerticalPieces: number,
     pieceW: number,
     pieceH: number,
-    pieceRadius: number
+    pieceRadius: number,
+    pieceScaleValue: number,
+    piecesBoardDimensions: PiecesBoard
   ) {
     this.scene = scene;
     this.numHorizontalPieces = numHorizontalPieces;
@@ -29,6 +37,8 @@ export class Puzzle {
     this.pieceW = pieceW;
     this.pieceH = pieceH;
     this.pieceRadius = pieceRadius;
+    this.pieceScaleValue = pieceScaleValue;
+    this.piecesBoardDimensions = piecesBoardDimensions;
   }
 
   // dispose the pieces within the board
@@ -121,11 +131,11 @@ export class Puzzle {
           0x4b86b4
         );
 
-        graphic_piece.drawPiece(
-          puzzle_offset.x + i * this.pieceW,
-          puzzle_offset.y + j * this.pieceH,
-          -1
-        );
+        // graphic_piece.drawPiece(
+        //   puzzle_offset.x + i * this.pieceW,
+        //   puzzle_offset.y + j * this.pieceH,
+        //   -1
+        // );
 
         piece_type_obj = {
           t: type_top,
@@ -145,7 +155,7 @@ export class Puzzle {
 
   public generateOutsidePieces(
     puzzleImage: Phaser.GameObjects.Image
-  ): PieceObj[][] {
+  ): Piece[][] {
     var g_offsetX = 0;
     var g_offsetY = 0;
 
@@ -160,8 +170,8 @@ export class Puzzle {
     // const min_y = bar_size_height + RADIUS_PIECE;
     // const max_y = s_height - PIECE_H - RADIUS_PIECE;
 
-    var ARR_MOVE_PIECES_LINE: PieceObj[] = [];
-    var ARR_MOVE_PIECES: PieceObj[][] = [];
+    var ARR_MOVE_PIECES_LINE: Piece[] = [];
+    var ARR_MOVE_PIECES: Piece[][] = [];
 
     for (let j = 0; j < this.numVerticalPieces; j++) {
       for (let i = 0; i < this.numHorizontalPieces; i++) {
@@ -195,15 +205,14 @@ export class Puzzle {
           )
           .draw(puzzleImage, -piece_draw_x, -piece_draw_y)
           .saveTexture("piece[" + j + "," + i + "]");
-
-        var pieceImg_aux = this.scene.add
+        var pieceImage = this.scene.add
           .image(
-            puzzleImage.getTopLeft().x + piece_draw_x,
-            puzzleImage.getTopLeft().y + piece_draw_y,
+            this.pieceW / 2 + 200,
+            this.pieceH / 2 + 200,
             "piece[" + j + "," + i + "]"
           )
-          .setInteractive()
-          .setOrigin(0);
+          .setOrigin(0.5);
+
         // 1: egde case -> find dual piece socket
         // 1 for horizontal dual socket
         // 2 for vertical dual socker
@@ -222,7 +231,7 @@ export class Puzzle {
           piece_draw_y += this.pieceRadius;
         }
 
-        const pieceGraphic_aux = new Piece(
+        const piece = new Piece(
           this.scene,
           this.pieceW,
           this.pieceH,
@@ -233,57 +242,52 @@ export class Puzzle {
           info_piece.r,
           info_piece.b,
           info_piece.l,
-          1.5,
+          0.5,
           0x696969
         );
+        piece.drawPiece(this.pieceW / 2 + 200, this.pieceH / 2 + 200, -1);
+        // console.log(piece.getPieceGraphObj());
+        // piece.drawPiece(
+        //   puzzleImage.getTopLeft().x + piece_draw_x,
+        //   puzzleImage.getTopLeft().y + piece_draw_y,
+        //   -1
+        // );
 
-        pieceGraphic_aux.drawPiece(
-          puzzleImage.getTopLeft().x + piece_draw_x,
-          puzzleImage.getTopLeft().y + piece_draw_y,
-          -1
-        );
+        piece.bindImageWithPiece(pieceImage, j, i);
+        const pieceObj = piece.bindImageWithPiece(pieceImage, j, i);
+        ARR_MOVE_PIECES_LINE.push(pieceObj);
 
-        const pieceObj = pieceGraphic_aux.getPieceGraphObj();
-        pieceImg_aux.setMask(pieceObj.createGeometryMask());
-
-        offset_piece_to_img_X = pieceObj.x - pieceImg_aux.x;
-        offset_piece_to_img_Y = pieceObj.y - pieceImg_aux.y;
-        pieceImg_aux.setData("x_offset", offset_piece_to_img_X);
-        pieceImg_aux.setData("y_offset", offset_piece_to_img_Y);
-        pieceImg_aux.setData("line_ref", j);
-        pieceImg_aux.setData("column_ref", i);
-        pieceImg_aux.setData("lock_pos", {
-          x: pieceObj.x,
-          y: pieceObj.y,
-        });
-        // if (j == 0 && i == 0) console.log(pieceImg_aux);
-        this.scene.input.setDraggable(pieceImg_aux);
-        pieceImg_aux.input.draggable = true;
-        // if (j == 0 && i == 0) console.log(pieceImg_aux);
-        var temp_obj = {
-          pieceImg: pieceImg_aux,
-          pieceObj: pieceObj,
-        };
-        ARR_MOVE_PIECES_LINE.push(temp_obj);
-
-        // set random pos in the right side
+        // set the piece position
         var random_piece_pos = {
-          x: getRndInteger(100, 300),
-          y: getRndInteger(100, 400),
+          x: getRndInteger(0, 400),
+          y: getRndInteger(0, 600),
         };
 
-        const final_x = random_piece_pos.x - offset_piece_to_img_X;
-        const final_y = random_piece_pos.y - offset_piece_to_img_Y;
-        pieceImg_aux.setPosition(final_x, final_y);
-        pieceObj.setPosition(
-          final_x + offset_piece_to_img_X,
-          final_y + offset_piece_to_img_Y
+        piece.resizeBindedPiece(
+          this.pieceScaleValue * this.pieceW,
+          this.pieceScaleValue * this.pieceH,
+          this.pieceScaleValue * this.pieceRadius,
+          this.pieceScaleValue
         );
+        piece.setBindedPiecePosition(random_piece_pos.x, random_piece_pos.y);
+        // piece.setPiecePosition(400, 300);
+        // piece.setImagePosition(400, 300);
+        // piece.setBindedPiecePosition(400, 300);
       }
       ARR_MOVE_PIECES.push(ARR_MOVE_PIECES_LINE);
       ARR_MOVE_PIECES_LINE = [];
     }
 
     return ARR_MOVE_PIECES;
+  }
+
+  public convertTo1D(pieces: Piece[][]): Piece[] {
+    const newArr: Piece[] = [];
+    for (let j = 0; j < this.numVerticalPieces; j++) {
+      for (let i = 0; i < this.numHorizontalPieces; i++) {
+        newArr.push(pieces[j][i]);
+      }
+    }
+    return newArr;
   }
 }

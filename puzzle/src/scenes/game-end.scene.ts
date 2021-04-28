@@ -1,6 +1,6 @@
 import { Menu } from "../objects/menu";
 
-export class GameWinScene extends Phaser.Scene {
+export class GameEndScene extends Phaser.Scene {
   private gameHeight: number;
   private gameWidth: number;
   private win: boolean;
@@ -12,7 +12,7 @@ export class GameWinScene extends Phaser.Scene {
 
   constructor() {
     super({
-      key: "GameWinScene",
+      key: "GameEndScene",
     });
   }
 

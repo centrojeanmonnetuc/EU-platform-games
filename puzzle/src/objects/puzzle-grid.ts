@@ -1,4 +1,8 @@
-import { ObjectSize, NumPieces } from "../interfaces/utils.interface";
+import {
+  ObjectSize,
+  NumPieces,
+  PiecesBoard,
+} from "../interfaces/utils.interface";
 import { scaleImageToFitFrame } from "../utils/resizeImage";
 
 export class PuzzleGrid {
@@ -15,7 +19,7 @@ export class PuzzleGrid {
   private imageAlpha: number = 0.2;
 
   private gapInBetween: number = 50;
-  private gapSide: number = 50;
+  private gapSide: number = 20;
 
   private image: Phaser.GameObjects.Image;
   private imageAux: Phaser.GameObjects.Image;
@@ -24,30 +28,32 @@ export class PuzzleGrid {
     scene: Phaser.Scene,
     boardW: number,
     boardH: number,
-    offsetY: number,
+    puzzleW: number,
+    puzzleH: number,
     imageRef: string
   ) {
     this.scene = scene;
     this.boardW = boardW;
     this.boardH = boardH;
-    this.centerGridOffsetY = offsetY;
-
-    this.puzzleW = this.boardW * this.puzzlePercW - this.gapSide * 2;
-    this.puzzleH = this.boardH - this.gapSide * 2;
+    this.puzzleW = boardW * puzzleW - this.gapSide * 2;
+    this.puzzleH = boardH * puzzleH - this.gapSide * 2;
 
     this.image = this.addImage(imageRef, this.imageAlpha, true, 0.5);
+    this.setImagePos(this.image, this.boardW / 2, this.boardH / 2);
+
     this.imageAux = this.addImage(imageRef, 1, false, 0);
-    this.imageAux.setPosition(
-      this.gapSide,
-      this.centerGridOffsetY + this.boardH / 2 - this.imageAux.height / 2
+    this.setImagePos(
+      this.imageAux,
+      this.boardW / 2 - this.imageAux.width / 2,
+      this.boardH / 2 - this.imageAux.height / 2
     );
   }
 
   public addImage(
     imageRef: string,
     alpha: number,
-    visble,
-    origin
+    visble: boolean,
+    origin: number
   ): Phaser.GameObjects.Image {
     var imageObj = this.scene.add
       .image(0, 0, imageRef)
@@ -57,10 +63,6 @@ export class PuzzleGrid {
       .setOrigin(origin);
     imageObj = scaleImageToFitFrame(this.puzzleW, this.puzzleH, imageObj);
 
-    imageObj.setPosition(
-      this.puzzleW / 2 + this.gapSide,
-      this.centerGridOffsetY + this.boardH / 2
-    );
     // imageObj.setPosition(this.gapSide, this.centerGridOffsetY + this.gapSide);
 
     return imageObj;
@@ -97,5 +99,18 @@ export class PuzzleGrid {
 
   public getImageAux(): Phaser.GameObjects.Image {
     return this.imageAux;
+  }
+
+  public getPiecesPercW(): number {
+    return this.piecesPercW;
+  }
+
+  public getPiecesBoardDimensions(): PiecesBoard {
+    return {
+      x: this.puzzleW + 2 * this.gapSide,
+      y: this.centerGridOffsetY + this.gapSide,
+      width: this.boardW - this.gapSide,
+      height: this.boardH - this.gapSide,
+    };
   }
 }
