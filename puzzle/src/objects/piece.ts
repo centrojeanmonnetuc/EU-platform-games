@@ -18,6 +18,7 @@ export class Piece {
   private left: number;
   private lineWidth: number;
   private fillColor: number;
+  private pieceInitCoors: PieceCoor;
 
   // piece obj
   private graphics: Phaser.GameObjects.Graphics;
@@ -443,5 +444,13 @@ export class Piece {
   public setPieceDepth(depthValue: number): void {
     this.image.setDepth(depthValue);
     // this.graphics.setDepth(depthValue);
+  }
+
+  public setPieceInitCoors(coors: PieceCoor): void {
+    this.pieceInitCoors = coors;
+  }
+
+  public getPieceInitCoors(): PieceCoor {
+    return this.pieceInitCoors;
   }
 }

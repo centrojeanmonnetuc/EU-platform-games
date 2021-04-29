@@ -99,8 +99,16 @@ export class GameScene extends Phaser.Scene {
     this.pieceH = height;
     this.pieceRadius = (this.pieceW + this.pieceH) / 2 / 3;
 
+    // piece size value in function of puzzle pieces size
+    let pieceReductionValue;
+    if (this.piecesSize === 150) {
+      pieceReductionValue = 0.05;
+    } else {
+      pieceReductionValue = 0.1;
+    }
     // what's the scale for this piece to fit in the side containers?
-    this.outsidePiecesScale = (this.gameWidth * 0.1) / this.pieceW;
+    this.outsidePiecesScale =
+      (this.gameWidth * pieceReductionValue) / this.pieceW;
 
     // console.log(this.numHorizontalPieces);
     // console.log(this.numVerticalPieces);
@@ -125,16 +133,20 @@ export class GameScene extends Phaser.Scene {
     const piecesArr = puzzle.generateOutsidePieces(puzzleGrid.getImageAux());
 
     const container1: PiecesBoard = {
-      x: 0,
-      y: 0,
-      width: puzzleGrid.getImage().getBottomLeft().x,
-      height: this.gameHeight,
+      x: this.pieceH * this.outsidePiecesScale,
+      y: this.gameHeight * 0.1,
+      width:
+        puzzleGrid.getImage().getBounds().left -
+        this.pieceH * this.outsidePiecesScale,
+      height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
     };
     const container2: PiecesBoard = {
-      x: puzzleGrid.getImage().getTopRight().x,
-      y: 0,
-      width: this.gameWidth,
-      height: this.gameHeight,
+      x:
+        puzzleGrid.getImage().getBounds().right +
+        this.pieceH * this.outsidePiecesScale,
+      y: this.gameHeight * 0.1,
+      width: this.gameWidth - this.pieceH * this.outsidePiecesScale,
+      height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
     };
     new PiecesKeeper(
       this,
@@ -277,7 +289,12 @@ export class GameScene extends Phaser.Scene {
         this.pieceRadius * this.outsidePiecesScale,
         this.outsidePiecesScale
       );
-      pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+      // pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+      // piece goes to default position
+      pieceObj.setBindedPiecePosition(
+        pieceObj.getPieceInitCoors().x,
+        pieceObj.getPieceInitCoors().y
+      );
       this.drop_sound.play();
     }
   }
