@@ -137,23 +137,30 @@ export class Puzzle {
           { x: 0, y: 0 }
         );
 
+        // socket info
+        let offsetX = 0,
+          offsetY = 0;
+        if (type_left === 1) {
+          offsetX -= this.pieceRadius / 2;
+        }
+        if (type_right === 1) {
+          offsetX += this.pieceRadius / 2;
+        }
+        if (type_top === 1) {
+          offsetY -= this.pieceRadius / 2;
+        }
+        if (type_bottom === 1) {
+          offsetY += this.pieceRadius / 2;
+        }
         // get the piece right lock coordinates
-        const lockX = image.getTopLeft().x + i * this.pieceW + this.pieceW / 2;
-        const lockY = image.getTopLeft().y + j * this.pieceH + this.pieceH / 2;
-        this.piecesRightLockCoors.push({ x: lockX, y: lockY });
+        const lockX =
+          image.getTopLeft().x + i * this.pieceW + this.pieceW / 2 + offsetX;
+        const lockY =
+          image.getTopLeft().y + j * this.pieceH + this.pieceH / 2 + offsetY;
+        const rightCoorObj = { x: lockX, y: lockY };
+        this.piecesRightLockCoors.push(rightCoorObj);
 
-        graphic_piece.drawPiece(lockX, lockY, -1);
-
-        // graphic_piece.setPiecePosition2(
-        //   image.getTopLeft().x + i * this.pieceW + this.pieceW / 2,
-        //   image.getTopLeft().y + j * this.pieceH + this.pieceH / 2
-        // );
-
-        // graphic_piece.drawPiece(
-        //   puzzle_offset.x + i * this.pieceW,
-        //   puzzle_offset.y + j * this.pieceH,
-        //   -1
-        // );
+        // graphic_piece.drawPiece(lockX, lockY, -1);
 
         piece_type_obj = {
           t: type_top,
@@ -183,12 +190,6 @@ export class Puzzle {
       piece_draw_x: number,
       piece_draw_y: number;
     var info_piece: PieceInfo;
-    var offset_piece_to_img_X: number, offset_piece_to_img_Y: number;
-    // const min_x = puzzle_width + RADIUS_PIECE;
-    // const max_x = s_width - PIECE_W - RADIUS_PIECE;
-    // const min_y = bar_size_height + RADIUS_PIECE;
-    // const max_y = s_height - PIECE_H - RADIUS_PIECE;
-
     var ARR_MOVE_PIECES_LINE: Piece[] = [];
     var ARR_MOVE_PIECES: Piece[][] = [];
 
@@ -228,27 +229,28 @@ export class Puzzle {
           .image(this.pieceW / 2, this.pieceH / 2, "piece[" + j + "," + i + "]")
           .setOrigin(0.5);
 
-        // 1: egde case -> find dual piece socket
-        // 1 for horizontal dual socket
-        // 2 for vertical dual socker
-        if (dualSocketPieceVerifier(info_piece) == 1) {
-          piece_draw_x += this.pieceRadius;
-        }
-        if (dualSocketPieceVerifier(info_piece) == 2) {
-          piece_draw_y += this.pieceRadius;
-        }
-        // 2: edge case -> in the last column there are pieces that are "dual socket" but finish the right side at 0
-        if (info_piece.l == 1 && info_piece.r == 0) {
-          piece_draw_x += this.pieceRadius;
-        }
-        // 3: edge case -> in the last line there are pieces that are "dual socket" but finish the bottom at 0
-        if (info_piece.t == 1 && info_piece.b == 0) {
-          piece_draw_y += this.pieceRadius;
-        }
+        // // 1: egde case -> find dual piece socket
+        // // 1 for horizontal dual socket
+        // // 2 for vertical dual socker
+        // if (dualSocketPieceVerifier(info_piece) == 1) {
+        //   piece_draw_x += this.pieceRadius;
+        // }
+        // if (dualSocketPieceVerifier(info_piece) == 2) {
+        //   piece_draw_y += this.pieceRadius;
+        // }
+        // // 2: edge case -> in the last column there are pieces that are "dual socket" but finish the right side at 0
+        // if (info_piece.l == 1 && info_piece.r == 0) {
+        //   piece_draw_x += this.pieceRadius;
+        // }
+        // // 3: edge case -> in the last line there are pieces that are "dual socket" but finish the bottom at 0
+        // if (info_piece.t == 1 && info_piece.b == 0) {
+        //   piece_draw_y += this.pieceRadius;
+        // }
 
         // // get the piece right lock coordinates
         // const lockX = i * this.pieceW + this.pieceW / 2;
         // const lockY = j * this.pieceH + this.pieceH / 2;
+
         const pieceRightLockCoor = this.piecesRightLockCoors[
           this.numHorizontalPieces * j + i
         ];
@@ -280,11 +282,11 @@ export class Puzzle {
         const pieceObj = piece.bindImageWithPiece(pieceImage, j, i);
         ARR_MOVE_PIECES_LINE.push(pieceObj);
 
-        // set the piece position
-        var random_piece_pos = {
-          x: getRndInteger(0, 400),
-          y: getRndInteger(0, 600),
-        };
+        // // set the piece position
+        // var random_piece_pos = {
+        //   x: getRndInteger(0, 400),
+        //   y: getRndInteger(0, 600),
+        // };
 
         piece.resizeBindedPiece(
           this.pieceScaleValue * this.pieceW,
@@ -292,10 +294,10 @@ export class Puzzle {
           this.pieceScaleValue * this.pieceRadius,
           this.pieceScaleValue
         );
-        piece.setBindedPiecePosition(random_piece_pos.x, random_piece_pos.y);
-        // piece.setPiecePosition(400, 300);
-        // piece.setImagePosition(400, 300);
-        // piece.setBindedPiecePosition(400, 300);
+        // piece.setBindedPiecePosition(random_piece_pos.x, random_piece_pos.y);
+        // // piece.setPiecePosition(400, 300);
+        // // piece.setImagePosition(400, 300);
+        piece.setBindedPiecePosition(400, 300);
       }
       ARR_MOVE_PIECES.push(ARR_MOVE_PIECES_LINE);
       ARR_MOVE_PIECES_LINE = [];

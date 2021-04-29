@@ -158,21 +158,21 @@ export class GameScene extends Phaser.Scene {
     this.input.on("dragend", (pointer: any, gameObject: any) =>
       this.dragEndHandler(pointer, gameObject, piecesArr)
     );
-    this.input.on(
-      "pointerdown",
-      function (pointer) {
-        console.log(pointer.x, pointer.y);
-      },
-      this
-    );
-    // /**
-    //  * SOUND
-    //  *
-    //  */
-    // this.select_sound = this.sound.add("select");
-    // this.drop_sound = this.sound.add("drop_piece");
-    // this.right_sound = this.sound.add("right_place");
-    // this.complete_sound = this.sound.add("complete_puzzle");
+    // this.input.on(
+    //   "pointerdown",
+    //   function (pointer) {
+    //     console.log(pointer.x, pointer.y);
+    //   },
+    //   this
+    // );
+    /**
+     * SOUND
+     *
+     */
+    this.select_sound = this.sound.add("select");
+    this.drop_sound = this.sound.add("drop_piece");
+    this.right_sound = this.sound.add("right_place");
+    this.complete_sound = this.sound.add("complete_puzzle");
     // // text
     // let updatedText = "";
     // if (this.timeToComplete) {
@@ -201,16 +201,16 @@ export class GameScene extends Phaser.Scene {
     // );
   }
 
-  update(): void {
-    if (this.timeToComplete && !CONST.GAME_OVER) {
-      this.text.setText(
-        `${this.displayText}${(
-          this.timeToComplete -
-          this.timedEvent.elapsed / 1000
-        ).toFixed(0)}`
-      );
-    }
-  }
+  // update(): void {
+  //   if (this.timeToComplete && !CONST.GAME_OVER) {
+  //     this.text.setText(
+  //       `${this.displayText}${(
+  //         this.timeToComplete -
+  //         this.timedEvent.elapsed / 1000
+  //       ).toFixed(0)}`
+  //     );
+  //   }
+  // }
 
   private dragHandlerStart(pointer: any, gameObject: any, arr: Piece[][]) {
     // gameObject.setDepth(++this.depthCounter);
@@ -220,9 +220,9 @@ export class GameScene extends Phaser.Scene {
     const indexC = gameObject.getData("piece").c;
     const pieceObj = arr[indexL][indexC];
     pieceObj.resizeBindedPiece(this.pieceW, this.pieceH, this.pieceRadius, 1);
+    // pieceObj.setBindedPiecePosition(300, 300);
     pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
-
-    // console.log(arr.find((elem) => console.log(elem)));
+    pieceObj.setPieceDepth(++this.depthCounter);
   }
 
   private dragHandler(gameObject: any, dragX: any, dragY: any, arr: Piece[][]) {
@@ -231,47 +231,45 @@ export class GameScene extends Phaser.Scene {
     const pieceObj = arr[indexL][indexC];
 
     pieceObj.setBindedPiecePosition(dragX, dragY);
-
-    // // check POSITION
-    // if (
-    //   checkLockPosition(
-    //     lock_pos,
-    //     dragX + x_offset,
-    //     dragY + y_offset,
-    //     this.pieceLockTolerance
-    //   )
-    // ) {
-    //   // put piece in right place
-    //   const final_x = lock_pos.x - x_offset;
-    //   const final_y = lock_pos.y - y_offset;
-    //   gameObject.setPosition(final_x, final_y);
-    //   temp_pieceObj.setPosition(final_x + x_offset, final_y + y_offset);
-    // } else {
-    //   gameObject.setPosition(dragX, dragY);
-    //   temp_pieceObj.setPosition(dragX + x_offset, dragY + y_offset);
-    // }
   }
 
   private dragEndHandler(pointer: any, gameObject: any, arr: Piece[][]) {
-    // check if its right position
     const indexL = gameObject.getData("piece").l;
     const indexC = gameObject.getData("piece").c;
     const pieceObj = arr[indexL][indexC];
-    // console.log(pointer.x, pointer.y);
-    // console.log(pieceObj.getPieceLockCoor());
-    // console.log(pieceObj.getImageObj().getBounds());
-    console.log(pieceObj.getImageCenterCoors());
+
     const rightPosObj = this.piecesRightCoors[
       this.numHorizontalPieces * indexL + indexC
     ];
-    if (this.verifyPieceLock(rightPosObj, pieceObj.getImageCenterCoors())) {
-      const coorsWithSockets = pieceObj.getCoorsWithSockets(
-        rightPosObj.x,
-        rightPosObj.y
-      );
-      console.log(rightPosObj);
-      console.log(coorsWithSockets);
-      pieceObj.setBindedPiecePosition(coorsWithSockets.x, coorsWithSockets.y);
+
+    const pieceObjCoor: PieceCoor = {
+      x: pieceObj.getImageObj().getBounds().centerX,
+      y: pieceObj.getImageObj().getBounds().centerY,
+    };
+    // check if its right position
+    if (this.verifyPieceLock(rightPosObj, pieceObjCoor)) {
+      pieceObj.setBindedPiecePosition(rightPosObj.x, rightPosObj.y);
+      pieceObj.setPieceDepth(1);
+      // disable piece draggablility
+      this.input.setDraggable(gameObject, false);
+      gameObject.input.draggable = false;
+      gameObject.setDepth(1);
+      // count piece
+      CONST.CURRENT_PIECES++;
+      // PIECES_TEXT.setText(CONST.CURRENT_PIECES + "/" + CONST.TOTAL_PIECES);
+
+      // VERIFY END OF PUZZLE
+      if (CONST.CURRENT_PIECES == CONST.TOTAL_PIECES) {
+        this.complete_sound.play();
+        CONST.GAME_OVER = true;
+        this.scene.launch("GameEndScene", {
+          width: this.gameWidth,
+          height: this.gameHeight,
+          win: true,
+        });
+      } else {
+        this.right_sound.play();
+      }
     } else {
       pieceObj.resizeBindedPiece(
         this.pieceW * this.outsidePiecesScale,
@@ -280,40 +278,8 @@ export class GameScene extends Phaser.Scene {
         this.outsidePiecesScale
       );
       pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+      this.drop_sound.play();
     }
-
-    // pieceObj.resizeBindedPiece(
-    //   this.pieceW * this.outsidePiecesScale,
-    //   this.pieceH * this.outsidePiecesScale,
-    //   this.pieceRadius * this.outsidePiecesScale,
-    //   this.outsidePiecesScale
-    // );
-    // pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
-
-    // if (temp_pieceObj.x == lock_pos.x && temp_pieceObj.y == lock_pos.y) {
-    //   // disable piece draggablility
-    //   this.input.setDraggable(gameObject, false);
-    //   gameObject.input.draggable = false;
-    //   gameObject.setDepth(1);
-    //   // count piece
-    //   CONST.CURRENT_PIECES++;
-    //   // PIECES_TEXT.setText(CONST.CURRENT_PIECES + "/" + CONST.TOTAL_PIECES);
-
-    //   // VERIFY END OF PUZZLE
-    //   if (CONST.CURRENT_PIECES == CONST.TOTAL_PIECES) {
-    //     this.complete_sound.play();
-    //     CONST.GAME_OVER = true;
-    //     this.scene.launch("GameEndScene", {
-    //       width: this.gameWidth,
-    //       height: this.gameHeight,
-    //       win: true,
-    //     });
-    //   } else {
-    //     this.right_sound.play();
-    //   }
-    // } else {
-    //   this.drop_sound.play();
-    // }
   }
 
   private verifyPieceLock(

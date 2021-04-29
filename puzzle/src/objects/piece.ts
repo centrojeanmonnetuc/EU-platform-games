@@ -341,19 +341,19 @@ export class Piece {
     this.graphics.fillStyle(this.fillColor, 1);
     this.graphics.fillPoints(this.hitAreaPoints);
 
-    //align piece to the center
-    // if (this.left === 1) {
-    //   posX += this.pieceRadius / 2;
-    // }
-    // if (this.right === 1) {
-    //   posX -= this.pieceRadius / 2;
-    // }
-    // if (this.top === 1) {
-    //   posY += this.pieceRadius / 2;
-    // }
-    // if (this.bottom === 1) {
-    //   posY -= this.pieceRadius / 2;
-    // }
+    // align piece to the center
+    if (this.left === 1) {
+      posX += this.pieceRadius / 2;
+    }
+    if (this.right === 1) {
+      posX -= this.pieceRadius / 2;
+    }
+    if (this.top === 1) {
+      posY += this.pieceRadius / 2;
+    }
+    if (this.bottom === 1) {
+      posY -= this.pieceRadius / 2;
+    }
 
     // // console.log(posX);
     // // console.log(posY);
@@ -440,46 +440,8 @@ export class Piece {
     return this.image;
   }
 
-  public getImageCenterCoors(): PieceCoor {
-    let offsetX = 0,
-      offsetY = 0;
-    if (this.left === 1) {
-      offsetX += this.pieceRadius / 2;
-    }
-    if (this.right === 1) {
-      offsetX -= this.pieceRadius / 2;
-    }
-    if (this.top === 1) {
-      offsetY += this.pieceRadius / 2;
-    }
-    if (this.bottom === 1) {
-      offsetY -= this.pieceRadius / 2;
-    }
-
-    return {
-      x: this.image.getBounds().centerX + offsetX,
-      y: this.image.getBounds().centerY + offsetY,
-    };
-  }
-
-  public getCoorsWithSockets(posX: number, posY: number): PieceCoor {
-    let offsetX = 0,
-      offsetY = 0;
-    if (this.left === 1) {
-      offsetX += this.pieceRadius / 2;
-    }
-    if (this.right === 1) {
-      offsetX -= this.pieceRadius / 2;
-    }
-    if (this.top === 1) {
-      offsetY += this.pieceRadius / 2;
-    }
-    if (this.bottom === 1) {
-      offsetY -= this.pieceRadius / 2;
-    }
-    return {
-      x: posX - offsetX,
-      y: posY - offsetY,
-    };
+  public setPieceDepth(depthValue: number): void {
+    this.image.setDepth(depthValue);
+    // this.graphics.setDepth(depthValue);
   }
 }
