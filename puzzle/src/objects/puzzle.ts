@@ -2,8 +2,9 @@ import { CONST } from "../const/const";
 import { Piece } from "./piece";
 import {
   PieceInfo,
-  PieceObj,
+  PieceBoardPos,
   PiecesBoard,
+  PieceCoor,
 } from "../interfaces/utils.interface";
 import { dualSocketPieceVerifier, getRndInteger } from "../utils/puzzle";
 
@@ -20,6 +21,8 @@ export class Puzzle {
 
   private piecesInfoArr: PieceInfo[][];
   private piecesBoardDimensions: PiecesBoard;
+
+  private piecesRightLockCoors: PieceCoor[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -42,7 +45,9 @@ export class Puzzle {
   }
 
   // dispose the pieces within the board
-  public generatePiecesInPuzzleBoard(image: Phaser.GameObjects.Image): void {
+  public generatePiecesInPuzzleBoard(
+    image: Phaser.GameObjects.Image
+  ): PieceCoor[] {
     /**
      * TYPE
      *  (top, left, bottom, right)
@@ -128,8 +133,21 @@ export class Puzzle {
           type_bottom,
           type_left,
           1,
-          0x4b86b4
+          0x4b86b4,
+          { x: 0, y: 0 }
         );
+
+        // get the piece right lock coordinates
+        const lockX = image.getTopLeft().x + i * this.pieceW + this.pieceW / 2;
+        const lockY = image.getTopLeft().y + j * this.pieceH + this.pieceH / 2;
+        this.piecesRightLockCoors.push({ x: lockX, y: lockY });
+
+        graphic_piece.drawPiece(lockX, lockY, -1);
+
+        // graphic_piece.setPiecePosition2(
+        //   image.getTopLeft().x + i * this.pieceW + this.pieceW / 2,
+        //   image.getTopLeft().y + j * this.pieceH + this.pieceH / 2
+        // );
 
         // graphic_piece.drawPiece(
         //   puzzle_offset.x + i * this.pieceW,
@@ -151,6 +169,7 @@ export class Puzzle {
       ARR_G_PIECES_LINE = [];
     }
     this.piecesInfoArr = ARR_G_PIECES;
+    return this.piecesRightLockCoors;
   }
 
   public generateOutsidePieces(
@@ -206,11 +225,7 @@ export class Puzzle {
           .draw(puzzleImage, -piece_draw_x, -piece_draw_y)
           .saveTexture("piece[" + j + "," + i + "]");
         var pieceImage = this.scene.add
-          .image(
-            this.pieceW / 2 + 200,
-            this.pieceH / 2 + 200,
-            "piece[" + j + "," + i + "]"
-          )
+          .image(this.pieceW / 2, this.pieceH / 2, "piece[" + j + "," + i + "]")
           .setOrigin(0.5);
 
         // 1: egde case -> find dual piece socket
@@ -231,6 +246,13 @@ export class Puzzle {
           piece_draw_y += this.pieceRadius;
         }
 
+        // // get the piece right lock coordinates
+        // const lockX = i * this.pieceW + this.pieceW / 2;
+        // const lockY = j * this.pieceH + this.pieceH / 2;
+        const pieceRightLockCoor = this.piecesRightLockCoors[
+          this.numHorizontalPieces * j + i
+        ];
+
         const piece = new Piece(
           this.scene,
           this.pieceW,
@@ -243,9 +265,10 @@ export class Puzzle {
           info_piece.b,
           info_piece.l,
           0.5,
-          0x696969
+          0x696969,
+          { x: pieceRightLockCoor.x, y: pieceRightLockCoor.y }
         );
-        piece.drawPiece(this.pieceW / 2 + 200, this.pieceH / 2 + 200, -1);
+        piece.drawPiece(this.pieceW / 2, this.pieceH / 2, -1);
         // console.log(piece.getPieceGraphObj());
         // piece.drawPiece(
         //   puzzleImage.getTopLeft().x + piece_draw_x,
@@ -289,5 +312,9 @@ export class Puzzle {
       }
     }
     return newArr;
+  }
+
+  public getPiecesRightLockCoors(): PieceCoor[] {
+    return this.piecesRightLockCoors;
   }
 }

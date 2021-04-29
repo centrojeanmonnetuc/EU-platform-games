@@ -1,11 +1,15 @@
-import { LockPosition, PieceObj } from "../interfaces/utils.interface";
+import {
+  PieceBoardPos,
+  PieceCoor,
+  PieceObj,
+} from "../interfaces/utils.interface";
 export class Piece {
   private scene: Phaser.Scene;
 
+  // piece info
   private pieceW: number;
   private pieceH: number;
   private pieceRadius: number;
-
   private offsetX: number;
   private offsetY: number;
   private top: number;
@@ -15,18 +19,18 @@ export class Piece {
   private lineWidth: number;
   private fillColor: number;
 
+  // piece obj
   private graphics: Phaser.GameObjects.Graphics;
   private hitAreaPoints: any;
 
-  /*
-   *Image
-   */
+  // image binded to piece formatt
   private image: Phaser.GameObjects.Image;
-  private x_offset: number;
-  private y_offset: number;
-  private line_ref: number;
-  private column_ref: number;
-  private lock_pos: LockPosition;
+
+  // coordinates where the piece is in the right spot
+  private pieceLockCoor: PieceCoor;
+
+  // piece indexes in board
+  private pieceBoardIndexes: PieceBoardPos;
 
   constructor(
     scene: Phaser.Scene,
@@ -40,7 +44,8 @@ export class Piece {
     bottom: number,
     left: number,
     lineWidth: number,
-    fillColor: number
+    fillColor: number,
+    pieceLockCoor: PieceCoor
   ) {
     this.scene = scene;
     this.pieceW = pieceW;
@@ -54,10 +59,7 @@ export class Piece {
     this.left = left;
     this.lineWidth = lineWidth;
     this.fillColor = fillColor;
-
-    this.pieceW_zommedOut = 100;
-    this.pieceH_zommedOut = 100;
-    this.pieceRadius_zommedOut = 20;
+    this.pieceLockCoor = pieceLockCoor;
 
     this.graphics = this.scene.add.graphics();
   }
@@ -338,23 +340,23 @@ export class Piece {
     this.graphics.lineStyle(this.lineWidth, 0x000000, 0.5);
     this.graphics.fillStyle(this.fillColor, 1);
     this.graphics.fillPoints(this.hitAreaPoints);
+
     //align piece to the center
+    // if (this.left === 1) {
+    //   posX += this.pieceRadius / 2;
+    // }
+    // if (this.right === 1) {
+    //   posX -= this.pieceRadius / 2;
+    // }
+    // if (this.top === 1) {
+    //   posY += this.pieceRadius / 2;
+    // }
+    // if (this.bottom === 1) {
+    //   posY -= this.pieceRadius / 2;
+    // }
 
-    if (this.left === 1) {
-      posX += this.pieceRadius / 2;
-    }
-    if (this.right === 1) {
-      posX -= this.pieceRadius / 2;
-    }
-    if (this.top === 1) {
-      posY += this.pieceRadius / 2;
-    }
-    if (this.bottom === 1) {
-      posY -= this.pieceRadius / 2;
-    }
-
-    // console.log(posX);
-    // console.log(posY);
+    // // console.log(posX);
+    // // console.log(posY);
 
     this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
     this.graphics.setDepth(depth);
@@ -378,20 +380,11 @@ export class Piece {
     this.image = image;
 
     this.image.setMask(this.graphics.createGeometryMask());
-    this.x_offset = this.graphics.x - this.image.x;
-    this.y_offset = this.graphics.y - this.image.y;
-    this.line_ref = lineIndex;
-    this.column_ref = columnIndex;
-    this.lock_pos = {
-      x: this.graphics.x,
-      y: this.graphics.y,
-    };
-
     this.image.setInteractive();
     this.scene.input.setDraggable(this.image);
     this.image.input.draggable = true;
 
-    this.image.setData("image", { l: lineIndex, c: columnIndex });
+    this.image.setData("piece", { l: lineIndex, c: columnIndex });
 
     return this;
   }
@@ -426,28 +419,67 @@ export class Piece {
     this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
   }
 
+  // public setPiecePosition2(posX: number, posY: number): void {
+  //   this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
+  // }
+
   public setImagePosition(posX: number, posY: number): void {
     this.image.setPosition(posX, posY);
   }
 
   public setBindedPiecePosition(posX: number, posY: number): void {
-    // const final_x = posX - this.x_offset;
-    // const final_y = posY - this.y_offset;
-    // this.image.setPosition(final_x, final_y);
-    // this.graphics.setPosition(final_x + this.x_offset, final_y + this.y_offset);
     this.setPiecePosition(posX, posY);
     this.setImagePosition(posX, posY);
   }
 
-  public setZoomIn(): void {
-    this.pieceW_zommedIn = this.pieceW;
-    this.pieceH_zommedIn = this.pieceH;
-    this.pieceRadius_zommedIn = this.pieceRadius;
+  public getPieceLockCoor(): PieceCoor {
+    return this.pieceLockCoor;
   }
 
-  public setZoomOut(scaleValue: number): void {
-    this.pieceW_zommedOut = scaleValue * this.pieceW;
-    this.pieceH_zommedOut = scaleValue * this.pieceH;
-    this.pieceRadius_zommedOut = scaleValue * this.pieceRadius;
+  public getImageObj(): Phaser.GameObjects.Image {
+    return this.image;
+  }
+
+  public getImageCenterCoors(): PieceCoor {
+    let offsetX = 0,
+      offsetY = 0;
+    if (this.left === 1) {
+      offsetX += this.pieceRadius / 2;
+    }
+    if (this.right === 1) {
+      offsetX -= this.pieceRadius / 2;
+    }
+    if (this.top === 1) {
+      offsetY += this.pieceRadius / 2;
+    }
+    if (this.bottom === 1) {
+      offsetY -= this.pieceRadius / 2;
+    }
+
+    return {
+      x: this.image.getBounds().centerX + offsetX,
+      y: this.image.getBounds().centerY + offsetY,
+    };
+  }
+
+  public getCoorsWithSockets(posX: number, posY: number): PieceCoor {
+    let offsetX = 0,
+      offsetY = 0;
+    if (this.left === 1) {
+      offsetX += this.pieceRadius / 2;
+    }
+    if (this.right === 1) {
+      offsetX -= this.pieceRadius / 2;
+    }
+    if (this.top === 1) {
+      offsetY += this.pieceRadius / 2;
+    }
+    if (this.bottom === 1) {
+      offsetY -= this.pieceRadius / 2;
+    }
+    return {
+      x: posX - offsetX,
+      y: posY - offsetY,
+    };
   }
 }

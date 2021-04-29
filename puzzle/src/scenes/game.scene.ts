@@ -4,7 +4,7 @@ import { PuzzleGrid } from "../objects/puzzle-grid";
 import { Puzzle } from "../objects/puzzle";
 import { checkLockPosition } from "../utils/puzzle";
 import { PiecesKeeper } from "../objects/pieces-keeper";
-import { PiecesBoard } from "../interfaces/utils.interface";
+import { PieceCoor, PiecesBoard } from "../interfaces/utils.interface";
 import { Piece } from "../objects/piece";
 
 export class GameScene extends Phaser.Scene {
@@ -35,7 +35,9 @@ export class GameScene extends Phaser.Scene {
   private outsidePiecesScale: number;
 
   private depthCounter: number = 0;
-  private pieceLockTolerance: number = 30;
+
+  private pieceLockTolerance: number = 50;
+  private piecesRightCoors: PieceCoor[];
 
   /**
    * Sounds
@@ -116,7 +118,10 @@ export class GameScene extends Phaser.Scene {
       this.outsidePiecesScale,
       puzzleGrid.getPiecesBoardDimensions()
     );
-    puzzle.generatePiecesInPuzzleBoard(puzzleGrid.getImage());
+    this.piecesRightCoors = puzzle.generatePiecesInPuzzleBoard(
+      puzzleGrid.getImage()
+    );
+    console.log(this.piecesRightCoors);
     const piecesArr = puzzle.generateOutsidePieces(puzzleGrid.getImageAux());
 
     const container1: PiecesBoard = {
@@ -143,21 +148,23 @@ export class GameScene extends Phaser.Scene {
     // set pieces positions outside the puzzle board
 
     this.input.on("dragstart", (pointer: any, gameObject: any) =>
-      this.dragHandlerStart(gameObject, piecesArr)
+      this.dragHandlerStart(pointer, gameObject, piecesArr)
     );
-    this.input.on("drag", (pointer, gameObject, dragX, dragY) =>
-      this.dragHandler(gameObject, dragX, dragY, piecesArr)
+    this.input.on(
+      "drag",
+      (pointer: any, gameObject: any, dragX: number, dragY: number) =>
+        this.dragHandler(gameObject, dragX, dragY, piecesArr)
     );
-    this.input.on("dragend", (pointer, gameObject, dragX, dragY) =>
-      this.dragEndHandler(gameObject, dragX, dragY, piecesArr)
+    this.input.on("dragend", (pointer: any, gameObject: any) =>
+      this.dragEndHandler(pointer, gameObject, piecesArr)
     );
-    // this.input.on(
-    //   "pointerdown",
-    //   function (pointer) {
-    //     console.log(pointer.x, pointer.y);
-    //   },
-    //   this
-    // );
+    this.input.on(
+      "pointerdown",
+      function (pointer) {
+        console.log(pointer.x, pointer.y);
+      },
+      this
+    );
     // /**
     //  * SOUND
     //  *
@@ -205,19 +212,22 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private dragHandlerStart(gameObject: any, arr: Piece[][]) {
+  private dragHandlerStart(pointer: any, gameObject: any, arr: Piece[][]) {
     // gameObject.setDepth(++this.depthCounter);
     // this.select_sound.play();
-    const indexL = gameObject.getData("image").l;
-    const indexC = gameObject.getData("image").c;
+
+    const indexL = gameObject.getData("piece").l;
+    const indexC = gameObject.getData("piece").c;
     const pieceObj = arr[indexL][indexC];
     pieceObj.resizeBindedPiece(this.pieceW, this.pieceH, this.pieceRadius, 1);
+    pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+
     // console.log(arr.find((elem) => console.log(elem)));
   }
 
   private dragHandler(gameObject: any, dragX: any, dragY: any, arr: Piece[][]) {
-    const indexL = gameObject.getData("image").l;
-    const indexC = gameObject.getData("image").c;
+    const indexL = gameObject.getData("piece").l;
+    const indexC = gameObject.getData("piece").c;
     const pieceObj = arr[indexL][indexC];
 
     pieceObj.setBindedPiecePosition(dragX, dragY);
@@ -242,25 +252,43 @@ export class GameScene extends Phaser.Scene {
     // }
   }
 
-  private dragEndHandler(
-    gameObject: any,
-    dragX: any,
-    dragY: any,
-    arr: Piece[][]
-  ) {
-    console.log(dragX);
-    console.log(dragY);
+  private dragEndHandler(pointer: any, gameObject: any, arr: Piece[][]) {
     // check if its right position
-    const indexL = gameObject.getData("image").l;
-    const indexC = gameObject.getData("image").c;
+    const indexL = gameObject.getData("piece").l;
+    const indexC = gameObject.getData("piece").c;
     const pieceObj = arr[indexL][indexC];
-    pieceObj.resizeBindedPiece(
-      this.pieceW * this.outsidePiecesScale,
-      this.pieceH * this.outsidePiecesScale,
-      this.pieceRadius * this.outsidePiecesScale,
-      this.outsidePiecesScale
-    );
-    pieceObj.setBindedPiecePosition(300, 300);
+    // console.log(pointer.x, pointer.y);
+    // console.log(pieceObj.getPieceLockCoor());
+    // console.log(pieceObj.getImageObj().getBounds());
+    console.log(pieceObj.getImageCenterCoors());
+    const rightPosObj = this.piecesRightCoors[
+      this.numHorizontalPieces * indexL + indexC
+    ];
+    if (this.verifyPieceLock(rightPosObj, pieceObj.getImageCenterCoors())) {
+      const coorsWithSockets = pieceObj.getCoorsWithSockets(
+        rightPosObj.x,
+        rightPosObj.y
+      );
+      console.log(rightPosObj);
+      console.log(coorsWithSockets);
+      pieceObj.setBindedPiecePosition(coorsWithSockets.x, coorsWithSockets.y);
+    } else {
+      pieceObj.resizeBindedPiece(
+        this.pieceW * this.outsidePiecesScale,
+        this.pieceH * this.outsidePiecesScale,
+        this.pieceRadius * this.outsidePiecesScale,
+        this.outsidePiecesScale
+      );
+      pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+    }
+
+    // pieceObj.resizeBindedPiece(
+    //   this.pieceW * this.outsidePiecesScale,
+    //   this.pieceH * this.outsidePiecesScale,
+    //   this.pieceRadius * this.outsidePiecesScale,
+    //   this.outsidePiecesScale
+    // );
+    // pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
 
     // if (temp_pieceObj.x == lock_pos.x && temp_pieceObj.y == lock_pos.y) {
     //   // disable piece draggablility
@@ -286,6 +314,21 @@ export class GameScene extends Phaser.Scene {
     // } else {
     //   this.drop_sound.play();
     // }
+  }
+
+  private verifyPieceLock(
+    imageCenterCoors: PieceCoor,
+    pieceCenterCoors: PieceCoor
+  ): boolean {
+    if (
+      pieceCenterCoors.x > imageCenterCoors.x - this.pieceLockTolerance &&
+      pieceCenterCoors.x < imageCenterCoors.x + this.pieceLockTolerance &&
+      pieceCenterCoors.y > imageCenterCoors.y - this.pieceLockTolerance &&
+      pieceCenterCoors.y < imageCenterCoors.y + this.pieceLockTolerance
+    ) {
+      return true;
+    }
+    return false;
   }
 
   private onEventTimeOver(): void {

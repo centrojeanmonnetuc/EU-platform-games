@@ -29,7 +29,12 @@ export interface PiecesBoard {
   height: number;
 }
 
-export interface LockPosition {
+export interface PieceCoor {
   x: number;
   y: number;
+}
+
+export interface PieceBoardPos {
+  lineIndex: number;
+  columnIndex: number;
 }
