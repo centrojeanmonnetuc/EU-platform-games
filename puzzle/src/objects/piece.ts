@@ -338,8 +338,8 @@ export class Piece {
     path.draw(this.graphics);
 
     this.hitAreaPoints = path.getPoints();
-    this.graphics.lineStyle(this.lineWidth, 0x000000, 0.5);
-    this.graphics.fillStyle(this.fillColor, 1);
+    this.graphics.lineStyle(this.lineWidth, 0x000000, 2);
+    this.graphics.fillStyle(this.fillColor, 2);
     this.graphics.fillPoints(this.hitAreaPoints);
 
     // align piece to the center

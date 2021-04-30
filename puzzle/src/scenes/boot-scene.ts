@@ -43,6 +43,8 @@ export class BootScene extends Phaser.Scene {
         this.load.audio("complete_puzzle", "assets/sounds/complete.mp3");
 
         this.load.image("star", "assets/images/star.png");
+        this.load.image("hourglass", "assets/images/hourglass.png");
+        this.load.image("bg", "assets/images/bg.jpg");
 
         console.log(resp.data);
 

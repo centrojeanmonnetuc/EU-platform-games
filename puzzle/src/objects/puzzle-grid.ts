@@ -38,8 +38,12 @@ export class PuzzleGrid {
     this.puzzleW = boardW * puzzleW - this.gapSide * 2;
     this.puzzleH = boardH * puzzleH - this.gapSide * 2;
 
-    this.image = this.addImage(imageRef, this.imageAlpha, true, 0.5);
+    this.image = this.addImage(imageRef, 0.6, true, 0.5);
     this.setImagePos(this.image, this.boardW / 2, this.boardH / 2);
+
+    //shadow
+    const imgBounds = this.image.getBounds();
+    this.generateImageShadow(imgBounds);
 
     this.imageAux = this.addImage(imageRef, 1, false, 0);
     this.setImagePos(
@@ -47,6 +51,57 @@ export class PuzzleGrid {
       this.boardW / 2 - this.imageAux.width / 2,
       this.boardH / 2 - this.imageAux.height / 2
     );
+  }
+
+  private generateImageShadow(imgBounds: any): void {
+    // const shadow = this.scene.add.rectangle(
+    //   imgBounds.left - 15,
+    //   imgBounds.top - 15,
+    //   imgBounds.width + 15,
+    //   imgBounds.height + 15,
+    //   0x000000,
+    //   0.5
+    // );
+
+    const shadow = this.scene.add.graphics();
+    const shadowOffset = 4;
+    // apply styles
+    shadow.beginPath();
+    shadow.fillStyle(0x000000, 0.4);
+    shadow.fillRoundedRect(
+      imgBounds.left - shadowOffset,
+      imgBounds.top - shadowOffset,
+      imgBounds.width + shadowOffset * 2,
+      imgBounds.height + shadowOffset * 2,
+      {
+        tl: 6,
+        tr: 6,
+        bl: 6,
+        br: 6,
+      }
+    );
+    shadow.strokePath();
+    shadow.closePath();
+    shadow.setDepth(-3);
+
+    shadow.beginPath();
+    shadow.fillStyle(0xffffff, 1);
+    shadow.fillRoundedRect(
+      imgBounds.left,
+      imgBounds.top,
+      imgBounds.width,
+      imgBounds.height,
+      {
+        tl: 0,
+        tr: 0,
+        bl: 0,
+        br: 0,
+      }
+    );
+    shadow.strokePath();
+    shadow.closePath();
+
+    // shadow.setPosition(this.boardW / 2, this.boardH / 2).setDepth(-3);
   }
 
   public addImage(
@@ -60,7 +115,9 @@ export class PuzzleGrid {
       .setInteractive()
       .setAlpha(alpha)
       .setVisible(visble)
-      .setOrigin(origin);
+
+      .setOrigin(origin)
+      .setDepth(-2);
     imageObj = scaleImageToFitFrame(this.puzzleW, this.puzzleH, imageObj);
 
     // imageObj.setPosition(this.gapSide, this.centerGridOffsetY + this.gapSide);

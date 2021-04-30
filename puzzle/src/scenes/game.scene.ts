@@ -6,6 +6,8 @@ import { checkLockPosition } from "../utils/puzzle";
 import { PiecesKeeper } from "../objects/pieces-keeper";
 import { PieceCoor, PiecesBoard } from "../interfaces/utils.interface";
 import { Piece } from "../objects/piece";
+import { Clock } from "../objects/clock";
+import { Background } from "../objects/background";
 
 export class GameScene extends Phaser.Scene {
   // field and game setting
@@ -53,6 +55,7 @@ export class GameScene extends Phaser.Scene {
   private text: Phaser.GameObjects.Text;
   private displayText: string;
   private timedEvent: Phaser.Time.TimerEvent;
+  private clock: Clock;
 
   constructor() {
     super({
@@ -70,6 +73,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    new Background(this, "bg", this.gameWidth, this.gameHeight);
     // this.topBar = new TopBar(this, this.gameWidth, this.gameHeight);
 
     // puzzle dimensions
@@ -129,7 +133,6 @@ export class GameScene extends Phaser.Scene {
     this.piecesRightCoors = puzzle.generatePiecesInPuzzleBoard(
       puzzleGrid.getImage()
     );
-    console.log(this.piecesRightCoors);
     const piecesArr = puzzle.generateOutsidePieces(puzzleGrid.getImageAux());
 
     const container1: PiecesBoard = {
@@ -170,13 +173,13 @@ export class GameScene extends Phaser.Scene {
     this.input.on("dragend", (pointer: any, gameObject: any) =>
       this.dragEndHandler(pointer, gameObject, piecesArr)
     );
-    // this.input.on(
-    //   "pointerdown",
-    //   function (pointer) {
-    //     console.log(pointer.x, pointer.y);
-    //   },
-    //   this
-    // );
+    this.input.on(
+      "pointerdown",
+      function (pointer) {
+        console.log(pointer.x, pointer.y);
+      },
+      this
+    );
     /**
      * SOUND
      *
@@ -186,43 +189,31 @@ export class GameScene extends Phaser.Scene {
     this.right_sound = this.sound.add("right_place");
     this.complete_sound = this.sound.add("complete_puzzle");
     // // text
-    // let updatedText = "";
-    // if (this.timeToComplete) {
-    //   this.displayText = "Tempo para acabar o jogo\n";
-    //   CONST.TIME = this.timeToComplete;
-    //   updatedText = `${this.displayText}${CONST.TIME}`;
-    //   // timer
-    //   this.timedEvent = this.time.delayedCall(
-    //     this.timeToComplete * 1000,
-    //     this.onEventTimeOver,
-    //     [],
-    //     this
-    //   );
-    // }
-    // console.log(this.timeToComplete);
-    // // TEXT
-    // this.text = this.add.text(0, 16, updatedText, {
-    //   fontFamily: "Arial",
-    //   fontSize: 32,
-    //   color: "#ffffff",
-    //   align: "center",
-    // });
-    // this.text.setPosition(
-    //   this.gameWidth / 2 - this.text.width / 2,
-    //   this.topBar.getHeight() / 2 - this.text.height / 2
-    // );
+    let updatedText = "";
+    if (this.timeToComplete) {
+      // this.displayText = "Tempo para acabar o jogo\n";
+      CONST.TIME = this.timeToComplete;
+      updatedText = `${CONST.TIME}`;
+      // timer
+      this.timedEvent = this.time.delayedCall(
+        this.timeToComplete * 1000,
+        this.onEventTimeOver,
+        [],
+        this
+      );
+
+      this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
+      this.clock.updateTime(updatedText);
+    }
   }
 
-  // update(): void {
-  //   if (this.timeToComplete && !CONST.GAME_OVER) {
-  //     this.text.setText(
-  //       `${this.displayText}${(
-  //         this.timeToComplete -
-  //         this.timedEvent.elapsed / 1000
-  //       ).toFixed(0)}`
-  //     );
-  //   }
-  // }
+  update(): void {
+    if (this.timeToComplete && !CONST.GAME_OVER) {
+      this.clock.updateTime(
+        `${(this.timeToComplete - this.timedEvent.elapsed / 1000).toFixed(0)}`
+      );
+    }
+  }
 
   private dragHandlerStart(pointer: any, gameObject: any, arr: Piece[][]) {
     // gameObject.setDepth(++this.depthCounter);
@@ -279,6 +270,9 @@ export class GameScene extends Phaser.Scene {
           height: this.gameHeight,
           win: true,
         });
+        if (this.timeToComplete) {
+          this.clock.cancelAnims();
+        }
       } else {
         this.right_sound.play();
       }
@@ -317,6 +311,7 @@ export class GameScene extends Phaser.Scene {
   private onEventTimeOver(): void {
     console.log("time over");
     CONST.GAME_OVER = true;
+    this.clock.cancelAnims();
 
     this.scene.launch("GameEndScene", {
       width: this.gameWidth,
