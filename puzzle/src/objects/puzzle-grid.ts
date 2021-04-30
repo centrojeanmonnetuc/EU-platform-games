@@ -41,7 +41,7 @@ export class PuzzleGrid {
 
     this.image = this.addImage(
       imageRef,
-      backgroundPuzzleImage ? 0.6 : 0,
+      backgroundPuzzleImage ? 0.3 : 0,
       true,
       0.5
     );

@@ -184,7 +184,7 @@ export class GameScene extends Phaser.Scene {
     );
     this.input.on(
       "pointerdown",
-      function (pointer) {
+      function (pointer: any) {
         // console.log(pointer.x, pointer.y);
       },
       this

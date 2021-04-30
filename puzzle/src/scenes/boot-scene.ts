@@ -5,7 +5,7 @@ export class BootScene extends Phaser.Scene {
 
   // database params
   // private timeToComplete: number | null;
-  private timeToComplete: number | null;
+  private timeToComplete: number | null = 120;
   private piecesSize: number | null;
   private puzzleImage: number | null;
   private piecePositionHelper: boolean = false;

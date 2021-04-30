@@ -274,7 +274,7 @@ export class Puzzle {
           0x696969,
           { x: pieceRightLockCoor.x, y: pieceRightLockCoor.y }
         );
-        piece.drawPiece(this.pieceW / 2, this.pieceH / 2, -1);
+        piece.drawPiece(this.pieceW / 2, this.pieceH / 2, -1, false);
         // console.log(piece.getPieceGraphObj());
         // piece.drawPiece(
         //   puzzleImage.getTopLeft().x + piece_draw_x,
