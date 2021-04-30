@@ -46,7 +46,9 @@ export class Puzzle {
 
   // dispose the pieces within the board
   public generatePiecesInPuzzleBoard(
-    image: Phaser.GameObjects.Image
+    image: Phaser.GameObjects.Image,
+    piecePositionHelper: boolean,
+    backgroundPuzzleImage: boolean
   ): PieceCoor[] {
     /**
      * TYPE
@@ -160,7 +162,9 @@ export class Puzzle {
         const rightCoorObj = { x: lockX, y: lockY };
         this.piecesRightLockCoors.push(rightCoorObj);
 
-        // graphic_piece.drawPiece(lockX, lockY, -1);
+        if (piecePositionHelper) {
+          graphic_piece.drawPiece(lockX, lockY, -1, backgroundPuzzleImage);
+        }
 
         piece_type_obj = {
           t: type_top,

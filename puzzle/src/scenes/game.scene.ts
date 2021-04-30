@@ -26,6 +26,9 @@ export class GameScene extends Phaser.Scene {
 
   private timeToComplete: number | null;
   private piecesSize: number;
+  private piecePositionHelper: boolean;
+  private backgroundPuzzleImage: boolean;
+  private movePiecesFreely: boolean;
   private puzzleImage: any;
 
   private numHorizontalPieces: number;
@@ -70,6 +73,9 @@ export class GameScene extends Phaser.Scene {
     this.timeToComplete = data.timeToComplete;
     this.piecesSize = data.piecesSize;
     this.puzzleImage = data.puzzleImage;
+    this.piecePositionHelper = data.piecePositionHelper;
+    this.backgroundPuzzleImage = data.backgroundPuzzleImage;
+    this.movePiecesFreely = data.movePiecesFreely;
   }
 
   create(): void {
@@ -84,7 +90,8 @@ export class GameScene extends Phaser.Scene {
       this.gameHeight + this.topBarSize * this.gameHeight,
       this.puzzleW,
       this.puzzleH,
-      this.puzzleImage.id
+      this.puzzleImage.id,
+      this.backgroundPuzzleImage
     );
 
     // Number of horizontal and vertical pieces that compose the puzzle
@@ -131,7 +138,9 @@ export class GameScene extends Phaser.Scene {
       puzzleGrid.getPiecesBoardDimensions()
     );
     this.piecesRightCoors = puzzle.generatePiecesInPuzzleBoard(
-      puzzleGrid.getImage()
+      puzzleGrid.getImage(),
+      this.piecePositionHelper,
+      this.backgroundPuzzleImage
     );
     const piecesArr = puzzle.generateOutsidePieces(puzzleGrid.getImageAux());
 
@@ -176,7 +185,7 @@ export class GameScene extends Phaser.Scene {
     this.input.on(
       "pointerdown",
       function (pointer) {
-        console.log(pointer.x, pointer.y);
+        // console.log(pointer.x, pointer.y);
       },
       this
     );
@@ -284,11 +293,16 @@ export class GameScene extends Phaser.Scene {
         this.outsidePiecesScale
       );
       // pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
-      // piece goes to default position
-      pieceObj.setBindedPiecePosition(
-        pieceObj.getPieceInitCoors().x,
-        pieceObj.getPieceInitCoors().y
-      );
+      if (!this.movePiecesFreely) {
+        // piece goes user last mouse position
+        pieceObj.setBindedPiecePosition(
+          pieceObj.getPieceInitCoors().x,
+          pieceObj.getPieceInitCoors().y
+        );
+      } else {
+        // piece goes to default position
+        pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+      }
       this.drop_sound.play();
     }
   }

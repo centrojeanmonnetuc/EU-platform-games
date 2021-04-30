@@ -30,7 +30,8 @@ export class PuzzleGrid {
     boardH: number,
     puzzleW: number,
     puzzleH: number,
-    imageRef: string
+    imageRef: string,
+    backgroundPuzzleImage: boolean
   ) {
     this.scene = scene;
     this.boardW = boardW;
@@ -38,7 +39,12 @@ export class PuzzleGrid {
     this.puzzleW = boardW * puzzleW - this.gapSide * 2;
     this.puzzleH = boardH * puzzleH - this.gapSide * 2;
 
-    this.image = this.addImage(imageRef, 0.6, true, 0.5);
+    this.image = this.addImage(
+      imageRef,
+      backgroundPuzzleImage ? 0.6 : 0,
+      true,
+      0.5
+    );
     this.setImagePos(this.image, this.boardW / 2, this.boardH / 2);
 
     //shadow
@@ -54,15 +60,6 @@ export class PuzzleGrid {
   }
 
   private generateImageShadow(imgBounds: any): void {
-    // const shadow = this.scene.add.rectangle(
-    //   imgBounds.left - 15,
-    //   imgBounds.top - 15,
-    //   imgBounds.width + 15,
-    //   imgBounds.height + 15,
-    //   0x000000,
-    //   0.5
-    // );
-
     const shadow = this.scene.add.graphics();
     const shadowOffset = 4;
     // apply styles

@@ -8,8 +8,11 @@ export class BootScene extends Phaser.Scene {
   private timeToComplete: number | null;
   private piecesSize: number | null;
   private puzzleImage: number | null;
+  private piecePositionHelper: boolean = false;
+  private backgroundPuzzleImage: boolean = true;
+  private movePiecesFreely: boolean = true;
 
-  private gameId: string;
+  private gameId: string | null;
 
   constructor() {
     super({
@@ -76,6 +79,9 @@ export class BootScene extends Phaser.Scene {
       timeToComplete: this.timeToComplete,
       piecesSize: this.piecesSize,
       puzzleImage: this.puzzleImage,
+      piecePositionHelper: this.piecePositionHelper,
+      backgroundPuzzleImage: this.backgroundPuzzleImage,
+      movePiecesFreely: this.movePiecesFreely,
     });
   }
 }

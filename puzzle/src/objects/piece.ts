@@ -65,7 +65,12 @@ export class Piece {
     this.graphics = this.scene.add.graphics();
   }
 
-  public drawPiece(posX: number, posY: number, depth: number): void {
+  public drawPiece(
+    posX: number,
+    posY: number,
+    depth: number,
+    transparent: boolean
+  ): void {
     var path = this.scene.add.path(posX, posY);
     var g_vec1: Phaser.Math.Vector2,
       g_vec2: Phaser.Math.Vector2,
@@ -338,8 +343,8 @@ export class Piece {
     path.draw(this.graphics);
 
     this.hitAreaPoints = path.getPoints();
-    this.graphics.lineStyle(this.lineWidth, 0x000000, 2);
-    this.graphics.fillStyle(this.fillColor, 2);
+    this.graphics.lineStyle(this.lineWidth, 0x000000, 0.5);
+    this.graphics.fillStyle(this.fillColor, transparent ? 0.5 : 1);
     this.graphics.fillPoints(this.hitAreaPoints);
 
     // align piece to the center
