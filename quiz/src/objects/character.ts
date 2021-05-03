@@ -1,3 +1,5 @@
+import { CONST } from "../const/const";
+import { QuestionObj } from "../interfaces/utils.interface";
 import { Question } from "./question";
 
 export class Character {
@@ -13,6 +15,18 @@ export class Character {
 
   // objects with that the character interactes
   private questionContainer: Question;
+  // questions array
+  private questions: QuestionObj[];
+
+  // animation settings:
+  private globalEase: string = "Linear";
+
+  // event
+  private emitter: Phaser.Events.EventEmitter;
+
+  // debug
+  private debug: number = 100;
+  // private debug: number = 1;
 
   constructor(
     scene: Phaser.Scene,
@@ -20,7 +34,9 @@ export class Character {
     finalX: number,
     centerY: number,
     gameWidth: number,
-    questionContainer: Question
+    questionContainer: Question,
+    questions: QuestionObj[],
+    emitter: Phaser.Events.EventEmitter
   ) {
     this.scene = scene;
     this.initX = initX;
@@ -28,13 +44,14 @@ export class Character {
     this.centerY = centerY;
     this.gameWidth = gameWidth;
     this.questionContainer = questionContainer;
+    this.questions = questions;
+    this.emitter = emitter;
 
     this.createCharacter();
     this.createAnimations();
-    this.playCharacterAppearAnimation();
   }
 
-  private createCharacter(): void {
+  public createCharacter(): void {
     this.characterScaleValue = 0.6;
     this.character = this.scene.add.sprite(0, 0, "right");
     this.character
@@ -45,6 +62,10 @@ export class Character {
         -this.character.width * this.characterScaleValue,
         this.centerY
       );
+  }
+
+  public deleteCharacter(): void {
+    this.character.destroy();
   }
 
   private createAnimations(): void {
@@ -62,14 +83,13 @@ export class Character {
     // });
   }
 
-  private playCharacterAppearAnimation(): void {
+  public playCharacterAppearAnimation(): void {
     this.character.play("correct_answer");
-
     this.scene.tweens.add({
       targets: this.character,
       x: this.initX - (this.character.width * this.characterScaleValue) / 4,
-      ease: "Linear",
-      duration: 1000,
+      ease: this.globalEase,
+      duration: 1000 / this.debug,
       onComplete: () => this.playCharacterJustificationAnimation(),
     });
   }
@@ -78,19 +98,27 @@ export class Character {
     this.scene.tweens.add({
       targets: [this.character, this.questionContainer.getQuestContainer()],
       x: this.gameWidth,
-      ease: "Linear",
-      duration: 1500,
+      ease: this.globalEase,
+      duration: 1600 / this.debug,
       onComplete: () => this.playCharacterComeBackAnimation(),
     });
   }
 
   private playCharacterComeBackAnimation(): void {
+    // justification apperance
+    const questionObj = this.questions[CONST.CURRENT_QUESTION];
+
+    // set justification
+    this.questionContainer.setQuestionText(questionObj.justification);
+
     this.scene.tweens.add({
       targets: this.questionContainer.getQuestContainer(),
       x: this.questionContainer.getCenterX(this.gameWidth),
-      ease: "Linear",
-      duration: 1500,
-      onComplete: () => this.character.stop(),
+      ease: this.globalEase,
+      duration: 1000 / this.debug,
+      onComplete: () => {
+        this.completedAnimation();
+      },
     });
 
     // flip character
@@ -99,8 +127,8 @@ export class Character {
     this.scene.tweens.add({
       targets: this.character,
       x: this.finalX + (this.character.width * this.characterScaleValue) / 4, // adjust the /4 value to align the character
-      ease: "Linear",
-      duration: 1500,
+      ease: this.globalEase,
+      duration: 1000 / this.debug,
     });
   }
 
@@ -113,5 +141,10 @@ export class Character {
     this.character.setX(
       actualCharX + this.character.width * this.characterScaleValue
     );
+  }
+
+  private completedAnimation(): void {
+    this.character.stop();
+    this.emitter.emit("completedAnimation", this);
   }
 }

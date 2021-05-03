@@ -8,7 +8,8 @@ export class DisplayText {
     posY: number,
     text: string,
     wrapW: number,
-    fontSize: number
+    fontSize: number,
+    color: string
   ) {
     this.scene = scene;
 
@@ -20,7 +21,7 @@ export class DisplayText {
       style: {
         fontFamily: "Arial",
         fontSize: fontSize,
-        color: 0x696969,
+        color: color,
         wordWrap: {
           width: wrapW,
           useAdvancedWrap: true,

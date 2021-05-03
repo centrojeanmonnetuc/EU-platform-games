@@ -32,7 +32,8 @@ export class Question {
       height / 2,
       "default",
       width - width * 0.1,
-      38
+      38,
+      0x696969
     );
     this.container.add(graphics);
     this.container.add(this.questionText.getText());

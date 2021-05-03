@@ -17,6 +17,7 @@ export class Answer {
   private bgColor: number = 0xffffff;
   private rightColor: number = 0x1dca3c;
   private wrongColor: number = 0xca421d;
+  private selectedColor: number = 0xffcc00;
 
   // event
   private emitter: Phaser.Events.EventEmitter;
@@ -66,7 +67,8 @@ export class Answer {
       posY,
       "default",
       width - width * 0.1,
-      28
+      28,
+      0x696969
     );
 
     this.container.add(this.graphics);
@@ -97,6 +99,7 @@ export class Answer {
 
   public setAnswerText(text: string): void {
     this.answerText.changeDisplayedText(text);
+    this.paintContainer(this.bgColor);
   }
 
   public getAnswerIndex(): number {
@@ -104,17 +107,31 @@ export class Answer {
   }
 
   public userInputHandler(userRight: boolean): void {
-    this.graphics.clear();
     if (userRight) {
-      this.graphics.fillStyle(this.rightColor, 1);
+      this.paintContainer(this.rightColor);
     } else {
-      this.graphics.fillStyle(this.wrongColor, 1);
+      this.paintContainer(this.wrongColor);
     }
+  }
+
+  private paintContainer(color: number): void {
+    this.graphics.clear();
+    this.graphics.fillStyle(color, 1);
     this.graphics.fillRoundedRect(
       this.posX - this.answerW / 2,
       this.posY - this.answerH / 2,
       this.answerW,
       this.answerH
     );
+  }
+
+  public setAnswerColor(type: string): void {
+    if (type === "red") {
+      this.paintContainer(this.wrongColor);
+    } else if (type === "green") {
+      this.paintContainer(this.rightColor);
+    } else if (type === "yellow") {
+      this.paintContainer(this.selectedColor);
+    }
   }
 }

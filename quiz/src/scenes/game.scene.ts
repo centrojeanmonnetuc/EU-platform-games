@@ -31,8 +31,7 @@ export class GameScene extends Phaser.Scene {
   private character: Character;
 
   // emitters
-  private questionsEmitter: Phaser.Events.EventEmitter;
-  private answerEmitter: Phaser.Events.EventEmitter;
+  private mainEmitter: Phaser.Events.EventEmitter;
 
   constructor() {
     super({
@@ -53,6 +52,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     CONST.CURRENT_QUESTION = -1;
+    this.mainEmitter = new Phaser.Events.EventEmitter();
     new Background(this, "bg", this.gameWidth, this.gameHeight);
 
     /**
@@ -70,7 +70,6 @@ export class GameScene extends Phaser.Scene {
     /**
      * Answers
      */
-    this.answerEmitter = new Phaser.Events.EventEmitter();
     const questContainerBounds = this.questionContainer
       .getQuestContainer()
       .getBounds();
@@ -81,9 +80,9 @@ export class GameScene extends Phaser.Scene {
       questContainerBounds.centerY + questContainerHeight,
       this.gameWidth * this.containerW,
       this.gameHeight * this.aContainerH,
-      this.answerEmitter
+      this.mainEmitter
     );
-    this.answerEmitter.on("selectedAnswer", this.selectedAnswerHandler, this);
+    this.mainEmitter.on("selectedAnswer", this.selectedAnswerHandler, this);
 
     /**
      * Buttons
@@ -94,19 +93,14 @@ export class GameScene extends Phaser.Scene {
     const btnLeft: ObjectPosition = { x: btnLeftPosX, y: btnPosY };
     const btnRight: ObjectPosition = { x: btnRightPosX, y: btnPosY };
 
-    this.questionsEmitter = new Phaser.Events.EventEmitter();
     this.buttons = new Buttons(
       this,
       "btn2",
       btnLeft,
       btnRight,
-      this.questionsEmitter
+      this.mainEmitter
     );
-    this.questionsEmitter.on(
-      "changeQuestion",
-      this.changeQuestionHandler,
-      this
-    );
+    this.mainEmitter.on("changeQuestion", this.changeQuestionHandler, this);
 
     /**
      * Animation
@@ -117,8 +111,16 @@ export class GameScene extends Phaser.Scene {
       questContainerBounds.centerX + questContainerWidth / 2,
       questContainerBounds.centerY,
       this.gameWidth,
-      this.questionContainer
+      this.questionContainer,
+      this.questions,
+      this.mainEmitter
     );
+    this.mainEmitter.on(
+      "completedAnimation",
+      this.completedAnimationHandler,
+      this
+    );
+    this.mainEmitter.on("reviewGame", this.reviewGameHandler, this);
 
     // this.input.on(
     //   "pointerdown",
@@ -129,41 +131,130 @@ export class GameScene extends Phaser.Scene {
     // );
 
     this.changeQuestionHandler("right");
+
+    // CONST.GAME_OVER = true;
+    // this.scene.launch("GameEndScene", {
+    //   width: this.gameWidth,
+    //   height: this.gameHeight,
+    //   emitter: this.mainEmitter,
+    // });
+
+    // CONST.USER_ANSWERS.push({ userIndex: 0, rightIndex: 2 });
+    // CONST.USER_ANSWERS.push({ userIndex: 1, rightIndex: 0 });
+    // CONST.USER_ANSWERS.push({ userIndex: 4, rightIndex: 1 });
   }
 
-  private selectedAnswerHandler(answerObj: Answer) {
-    // disable emitter
-    this.answerEmitter.off("selectedAnswer");
-
-    // verify if is the correct answer
-    const questionObj = this.questions[CONST.CURRENT_QUESTION];
-    const userAnswerInfo =
-      questionObj.rightAnswer === answerObj.getAnswerIndex();
-    answerObj.userInputHandler(userAnswerInfo);
-
-    // set justification
-    this.questionContainer.setQuestionText(questionObj.justification);
+  private reviewGameHandler(): void {
+    // start from beging
+    CONST.CURRENT_QUESTION = -1;
+    this.changeQuestionHandler("right");
   }
 
   private changeQuestionHandler(type: string) {
-    // disable emitter
-    this.questionsEmitter.off("changeQuestion");
-
     if (type === "left") {
       CONST.CURRENT_QUESTION--;
     } else if (type === "right") {
       CONST.CURRENT_QUESTION++;
     }
+
+    // resume scene
+    if (CONST.GAME_OVER) {
+      if (this.questions[CONST.CURRENT_QUESTION] == null) {
+        this.buttons.enableRightBtn(false);
+        // launch
+        this.scene.launch("GameEndScene", {
+          width: this.gameWidth,
+          height: this.gameHeight,
+          emitter: this.mainEmitter,
+        });
+        return;
+      }
+    }
+    // set new question and answers
     var quest = this.questions[CONST.CURRENT_QUESTION].question;
-
     this.questionContainer.setQuestionText(quest);
-
     var answers: string[] = [];
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer1);
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer2);
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer3);
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer4);
-
     this.answersContainer.setAnswers(answers);
+
+    if (CONST.GAME_OVER) {
+      // set buttons
+      const leftInfo = this.questions[CONST.CURRENT_QUESTION - 1] == null;
+      if (leftInfo) {
+        this.buttons.enableLeftButton(false);
+      } else {
+        this.buttons.enableLeftButton(true);
+      }
+      const rightInfo = this.questions[CONST.CURRENT_QUESTION + 1] == null;
+      if (rightInfo) {
+        // where we do nothing, need active to load the resume scene
+      } else {
+        this.buttons.enableRightBtn(true);
+      }
+
+      // set answers
+      const currentQuestIndex = CONST.CURRENT_QUESTION;
+      const userAnswerObj = CONST.USER_ANSWERS[currentQuestIndex];
+      this.answersContainer.setReviewAnswers(
+        userAnswerObj.userIndex,
+        userAnswerObj.rightIndex
+      );
+    } else {
+      this.character.deleteCharacter();
+
+      this.buttons.enableLeftButton(false);
+
+      // disable next button (right) if the user was not yet selected a answer
+      this.buttons.enableRightBtn(false);
+
+      // enable user input in answers
+      this.mainEmitter.on("selectedAnswer", this.selectedAnswerHandler, this);
+
+      // create character
+      this.character.createCharacter();
+    }
+  }
+
+  private selectedAnswerHandler(answerObj: Answer) {
+    // disable emitter
+    this.mainEmitter.off("selectedAnswer");
+
+    // verify if is the correct answer
+    const questionObj = this.questions[CONST.CURRENT_QUESTION];
+    const userAnswer = answerObj.getAnswerIndex();
+    const userAnswerInfo = questionObj.rightAnswer === userAnswer;
+    answerObj.userInputHandler(userAnswerInfo);
+
+    // play character animation
+    this.character.playCharacterAppearAnimation();
+
+    // save user answer
+    CONST.USER_ANSWERS.push({
+      userIndex: userAnswer,
+      rightIndex: questionObj.rightAnswer,
+    });
+  }
+
+  private completedAnimationHandler(): void {
+    // resets
+    // disable or enable swipe question button
+    const rightBtnInfo = this.questions[CONST.CURRENT_QUESTION + 1] == null;
+    if (rightBtnInfo) {
+      // end game
+      this.buttons.enableRightBtn(false);
+      this.character.deleteCharacter();
+      this.mainEmitter.removeListener("selectedAnswer");
+      CONST.GAME_OVER = true;
+      this.scene.launch("GameEndScene", {
+        width: this.gameWidth,
+        height: this.gameHeight,
+        emitter: this.mainEmitter,
+      });
+    } else {
+      this.buttons.enableRightBtn(true);
+    }
   }
 }

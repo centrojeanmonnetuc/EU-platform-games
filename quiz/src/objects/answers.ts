@@ -57,4 +57,22 @@ export class Answers {
       this.answersContainers[i].setAnswerText(answersArr[i]);
     }
   }
+
+  public getAnswerAtIndex(index: number): Phaser.GameObjects.Container {
+    return this.answersContainers[index].getAnswerContainer();
+  }
+
+  public setReviewAnswers(userChoice: number, rightChoice: number): void {
+    let obj;
+    for (let i = 0; i < this.numAnswers; i++) {
+      obj = this.answersContainers[i];
+      if (i === userChoice) {
+        obj.setAnswerColor("yellow");
+      } else if (i === rightChoice) {
+        obj.setAnswerColor("green");
+      } else {
+        obj.setAnswerColor("red");
+      }
+    }
+  }
 }

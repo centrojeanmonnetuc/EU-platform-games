@@ -35,7 +35,6 @@ export class Buttons {
       false,
       "right"
     );
-    this.enableButtons(true, true);
   }
 
   private createBtn(
@@ -82,21 +81,19 @@ export class Buttons {
     btnRef.setInteractive();
   }
 
-  public disableButtons(left: boolean, right: boolean): void {
-    if (left) {
-      this.disableButton(this.btnLeft);
-    }
-    if (right) {
+  public enableRightBtn(flag: boolean): void {
+    if (flag) {
+      this.enableButton(this.btnRight);
+    } else {
       this.disableButton(this.btnRight);
     }
   }
 
-  public enableButtons(left: boolean, right: boolean): void {
-    if (left) {
+  public enableLeftButton(flag: boolean): void {
+    if (flag) {
       this.enableButton(this.btnLeft);
-    }
-    if (right) {
-      this.enableButton(this.btnRight);
+    } else {
+      this.disableButton(this.btnLeft);
     }
   }
 }
