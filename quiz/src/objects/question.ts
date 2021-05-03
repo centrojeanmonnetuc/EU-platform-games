@@ -38,11 +38,15 @@ export class Question {
     this.container.add(this.questionText.getText());
   }
 
-  public center(gameWidth: number, gameHeight: number): void {
+  public center(gameWidth: number): void {
     this.container.setPosition(
       gameWidth / 2 - this.questions_w / 2,
       this.questions_w / 6
     );
+  }
+
+  public getCenterX(gameWidth: number): number {
+    return gameWidth / 2 - this.questions_w / 2;
   }
 
   public getQuestContainer(): Phaser.GameObjects.Container {

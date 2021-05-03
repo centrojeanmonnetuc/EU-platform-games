@@ -62,6 +62,17 @@ export class BootScene extends Phaser.Scene {
         this.load.audio("right_answer", "./assets/sounds/right_answer.mp3");
         this.load.audio("wrong_answer", "./assets/sounds/wrong_answer.mp3");
 
+        this.load.atlas(
+          "right",
+          "./assets/images/spritesheet_right.png",
+          "./assets/images/spritesheet_right.json"
+        );
+        this.load.atlas(
+          "wrong",
+          "./assets/images/spritesheet_wrong.png",
+          "./assets/images/spritesheet_wrong.json"
+        );
+
         this.load.start();
       })
 

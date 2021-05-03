@@ -6,6 +6,8 @@ import { Background } from "../objects/background";
 import { Question } from "../objects/question";
 import { Answers } from "../objects/answers";
 import { Buttons } from "../objects/buttons";
+import { Answer } from "../objects/answer";
+import { Character } from "../objects/character";
 
 export class GameScene extends Phaser.Scene {
   // field and game setting
@@ -26,6 +28,11 @@ export class GameScene extends Phaser.Scene {
   private questionContainer: Question;
   private answersContainer: Answers;
   private buttons: Buttons;
+  private character: Character;
+
+  // emitters
+  private questionsEmitter: Phaser.Events.EventEmitter;
+  private answerEmitter: Phaser.Events.EventEmitter;
 
   constructor() {
     super({
@@ -58,11 +65,12 @@ export class GameScene extends Phaser.Scene {
       questContainerWidth,
       questContainerHeight
     );
-    this.questionContainer.center(this.gameWidth, this.gameHeight);
+    this.questionContainer.center(this.gameWidth);
 
     /**
      * Answers
      */
+    this.answerEmitter = new Phaser.Events.EventEmitter();
     const questContainerBounds = this.questionContainer
       .getQuestContainer()
       .getBounds();
@@ -72,26 +80,45 @@ export class GameScene extends Phaser.Scene {
       questContainerBounds.centerX,
       questContainerBounds.centerY + questContainerHeight,
       this.gameWidth * this.containerW,
-      this.gameHeight * this.aContainerH
+      this.gameHeight * this.aContainerH,
+      this.answerEmitter
     );
+    this.answerEmitter.on("selectedAnswer", this.selectedAnswerHandler, this);
+
+    /**
+     * Buttons
+     */
     const btnPosY = this.gameHeight - this.gameHeight * this.aContainerH;
     const btnLeftPosX = questContainerBounds.centerX - questContainerWidth / 2;
     const btnRightPosX = questContainerBounds.centerX + questContainerWidth / 2;
     const btnLeft: ObjectPosition = { x: btnLeftPosX, y: btnPosY };
     const btnRight: ObjectPosition = { x: btnRightPosX, y: btnPosY };
 
-    /**
-     * Buttons
-     */
-    const questionsEmitter = new Phaser.Events.EventEmitter();
+    this.questionsEmitter = new Phaser.Events.EventEmitter();
     this.buttons = new Buttons(
       this,
       "btn2",
       btnLeft,
       btnRight,
-      questionsEmitter
+      this.questionsEmitter
     );
-    questionsEmitter.on("changeQuestion", this.changeQuestionHandler, this);
+    this.questionsEmitter.on(
+      "changeQuestion",
+      this.changeQuestionHandler,
+      this
+    );
+
+    /**
+     * Animation
+     */
+    this.character = new Character(
+      this,
+      questContainerBounds.centerX - questContainerWidth / 2,
+      questContainerBounds.centerX + questContainerWidth / 2,
+      questContainerBounds.centerY,
+      this.gameWidth,
+      this.questionContainer
+    );
 
     // this.input.on(
     //   "pointerdown",
@@ -104,7 +131,24 @@ export class GameScene extends Phaser.Scene {
     this.changeQuestionHandler("right");
   }
 
+  private selectedAnswerHandler(answerObj: Answer) {
+    // disable emitter
+    this.answerEmitter.off("selectedAnswer");
+
+    // verify if is the correct answer
+    const questionObj = this.questions[CONST.CURRENT_QUESTION];
+    const userAnswerInfo =
+      questionObj.rightAnswer === answerObj.getAnswerIndex();
+    answerObj.userInputHandler(userAnswerInfo);
+
+    // set justification
+    this.questionContainer.setQuestionText(questionObj.justification);
+  }
+
   private changeQuestionHandler(type: string) {
+    // disable emitter
+    this.questionsEmitter.off("changeQuestion");
+
     if (type === "left") {
       CONST.CURRENT_QUESTION--;
     } else if (type === "right") {

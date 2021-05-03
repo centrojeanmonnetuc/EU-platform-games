@@ -8,16 +8,21 @@ export class Answers {
   private answersContainers: Answer[] = [];
   private answers: string[];
 
+  // event
+  private emitter: Phaser.Events.EventEmitter;
+
   constructor(
     scene: Phaser.Scene,
     numAnswers: number,
     posX: number,
     posY: number,
     width: number,
-    height: number
+    height: number,
+    emitter: Phaser.Events.EventEmitter
   ) {
     this.scene = scene;
     this.numAnswers = numAnswers;
+    this.emitter = emitter;
 
     this.createContainer(posX, posY, width, height);
   }
@@ -33,7 +38,15 @@ export class Answers {
     let posY_counter = initPosY;
 
     for (let i = 0; i < this.numAnswers; i++) {
-      const ans = new Answer(this.scene, centerX, posY_counter, width, height);
+      const ans = new Answer(
+        this.scene,
+        i,
+        centerX,
+        posY_counter,
+        width,
+        height,
+        this.emitter
+      );
       this.answersContainers.push(ans);
       posY_counter += height + spaceInBetween;
     }
