@@ -1,5 +1,11 @@
 import { Menu } from "../objects/menu";
 import { DisplayText } from "../objects/text";
+import {
+  UserAnswers,
+  UserRightWrongAnswers,
+} from "../interfaces/utils.interface";
+import { CONST } from "../const/const";
+
 export class GameEndScene extends Phaser.Scene {
   private gameHeight: number;
   private gameWidth: number;
@@ -75,6 +81,21 @@ export class GameEndScene extends Phaser.Scene {
     );
   }
 
+  private countRightAnswers(arr: UserAnswers[]): UserRightWrongAnswers {
+    console.log(arr);
+    let right = 0;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i].userIndex === arr[i].rightIndex) {
+        right++;
+      }
+    }
+
+    return {
+      right: right,
+      wrong: Math.abs(right - arr.length),
+    };
+  }
+
   private answerInfo(centerX: number, posY: number, scale: number): void {
     const wrong = this.add.image(centerX, posY, "wrong");
     const right = this.add.image(centerX, posY, "correct");
@@ -82,12 +103,15 @@ export class GameEndScene extends Phaser.Scene {
     const centerOffsetY = right.height * scale + posY;
     wrong.setScale(scale).setPosition(centerX - centerOffsetX, centerOffsetY);
     right.setScale(scale).setPosition(centerX + centerOffsetX, centerOffsetY);
+    const userInfo: UserRightWrongAnswers = this.countRightAnswers(
+      CONST.USER_ANSWERS
+    );
 
     const wrongInfo = new DisplayText(
       this,
       centerX - centerOffsetX,
       wrong.getBounds().bottom + wrong.getBounds().height * 1.2,
-      "3",
+      `${userInfo.wrong}`,
       wrong.width,
       82,
       "#ffffff"
@@ -96,7 +120,7 @@ export class GameEndScene extends Phaser.Scene {
       this,
       centerX + centerOffsetX,
       wrong.getBounds().bottom + wrong.getBounds().height * 1.2,
-      "3",
+      `${userInfo.right}`,
       wrong.width,
       82,
       "#ffffff"

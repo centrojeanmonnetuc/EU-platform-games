@@ -7,8 +7,7 @@ export class BootScene extends Phaser.Scene {
 
   // database params
   private questions: QuestionObj[];
-  private timeToRespQuestion: number;
-  private timer: boolean | number;
+  private timeToRespQuestion: number | null;
 
   constructor() {
     super({
@@ -40,7 +39,6 @@ export class BootScene extends Phaser.Scene {
         const config = resp.data.config;
         this.questions = config.questions;
         this.timeToRespQuestion = config.time_to_resp_question;
-        this.timer = config.timer;
 
         // const assets = resp.data.assets;
 
@@ -58,6 +56,8 @@ export class BootScene extends Phaser.Scene {
         this.load.image("wrong", "./assets/images/wrong.png");
         this.load.image("listening", "./assets/images/listening.png");
         this.load.image("star", "assets/images/star.png");
+        this.load.image("question", "assets/images/question.png");
+        this.load.image("hourglass", "assets/images/hourglass.png");
 
         this.load.audio("right_answer", "./assets/sounds/right_answer.mp3");
         this.load.audio("wrong_answer", "./assets/sounds/wrong_answer.mp3");
@@ -86,7 +86,6 @@ export class BootScene extends Phaser.Scene {
     this.scene.start("GameScene", {
       questions: this.questions,
       timeToRespQuestion: this.timeToRespQuestion,
-      timer: this.timer,
     });
   }
 }

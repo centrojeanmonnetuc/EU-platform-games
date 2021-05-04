@@ -85,7 +85,7 @@ export class Answer {
     );
 
     this.container.on("pointerdown", () => {
-      this.emitter.emit("selectedAnswer", this);
+      this.emitter.emit("selectedAnswer", this, true);
     });
   }
 

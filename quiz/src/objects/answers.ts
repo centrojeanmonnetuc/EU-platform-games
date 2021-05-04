@@ -1,5 +1,6 @@
 import { scaleImageToFitFrame } from "../utils/resizeImage";
 import { Answer } from "../objects/answer";
+import { UserAnswers } from "../interfaces/utils.interface";
 
 export class Answers {
   private scene: Phaser.Scene;
@@ -62,13 +63,25 @@ export class Answers {
     return this.answersContainers[index].getAnswerContainer();
   }
 
-  public setReviewAnswers(userChoice: number, rightChoice: number): void {
+  public setReviewAnswers(userAnswerObj: UserAnswers): void {
     let obj;
     for (let i = 0; i < this.numAnswers; i++) {
       obj = this.answersContainers[i];
-      if (i === userChoice) {
+      if (i === userAnswerObj.userIndex) {
         obj.setAnswerColor("yellow");
-      } else if (i === rightChoice) {
+      } else if (i === userAnswerObj.rightIndex) {
+        obj.setAnswerColor("green");
+      } else {
+        obj.setAnswerColor("red");
+      }
+    }
+  }
+
+  public revealRightAnswer(rightIndex: number): void {
+    let obj;
+    for (let i = 0; i < this.numAnswers; i++) {
+      obj = this.answersContainers[i];
+      if (i === rightIndex) {
         obj.setAnswerColor("green");
       } else {
         obj.setAnswerColor("red");

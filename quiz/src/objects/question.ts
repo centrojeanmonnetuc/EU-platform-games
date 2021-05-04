@@ -42,7 +42,7 @@ export class Question {
   public center(gameWidth: number): void {
     this.container.setPosition(
       gameWidth / 2 - this.questions_w / 2,
-      this.questions_w / 6
+      this.questions_w / 4
     );
   }
 
