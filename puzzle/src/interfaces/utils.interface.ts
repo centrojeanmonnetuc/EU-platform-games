@@ -38,3 +38,10 @@ export interface PieceBoardPos {
   lineIndex: number;
   columnIndex: number;
 }
+
+export interface PieceType {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}

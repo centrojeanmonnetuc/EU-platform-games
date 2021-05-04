@@ -15,7 +15,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   fps: {
-    target: 60,
+    target: 5,
     forceSetTimeOut: true,
   },
   scene: [BootScene, GameScene, GameEndScene],

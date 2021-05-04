@@ -1,73 +1,118 @@
-import {
-  PieceBoardPos,
-  PieceCoor,
-  PieceObj,
-} from "../interfaces/utils.interface";
-export class Piece {
-  private scene: Phaser.Scene;
+import { PieceType } from "../interfaces/utils.interface";
 
-  // piece info
+export class PiecesGenerator {
+  private scene: Phaser.Scene;
+  private offsetX: number = 0;
+  private offsetY: number = 0;
   private pieceW: number;
   private pieceH: number;
   private pieceRadius: number;
-  private offsetX: number;
-  private offsetY: number;
-  private top: number;
-  private right: number;
-  private bottom: number;
-  private left: number;
-  private lineWidth: number;
-  private fillColor: number;
-  private pieceInitCoors: PieceCoor;
+  private pieceGraphic: Phaser.GameObjects.Graphics;
 
-  // piece obj
-  private graphics: Phaser.GameObjects.Graphics;
-  private hitAreaPoints: any;
-
-  // image binded to piece formatt
-  private image: Phaser.GameObjects.Image;
-
-  // coordinates where the piece is in the right spot
-  private pieceLockCoor: PieceCoor;
-
-  // piece indexes in board
-  private pieceBoardIndexes: PieceBoardPos;
+  private lineWidth: number = 0.5;
+  private fillColor: number = 0x696969;
 
   constructor(
     scene: Phaser.Scene,
     pieceW: number,
     pieceH: number,
     pieceRadius: number,
-    offsetX: number,
-    offsetY: number,
-    top: number,
-    right: number,
-    bottom: number,
-    left: number,
-    lineWidth: number,
-    fillColor: number,
-    pieceLockCoor: PieceCoor
+    piecesParams: number[]
   ) {
     this.scene = scene;
     this.pieceW = pieceW;
     this.pieceH = pieceH;
     this.pieceRadius = pieceRadius;
-    this.offsetX = offsetX;
-    this.offsetY = offsetY;
-    this.top = top;
-    this.right = right;
-    this.bottom = bottom;
-    this.left = left;
-    this.lineWidth = lineWidth;
-    this.fillColor = fillColor;
-    this.pieceLockCoor = pieceLockCoor;
 
-    this.graphics = this.scene.add.graphics();
+    this.generator(piecesParams);
+  }
+
+  private generator(piecesParams: number[]): void {
+    this.pieceGraphic = this.scene.add.graphics();
+    const arrSize = piecesParams.length;
+    let controlArr = [];
+    // const arrSize = 1;
+    for (let i = 0; i < arrSize; i++) {
+      controlArr.push(piecesParams[i]);
+      for (let j = 0; j < arrSize; j++) {
+        controlArr.push(piecesParams[j]);
+        for (let k = 0; k < arrSize; k++) {
+          controlArr.push(piecesParams[k]);
+          for (let m = 0; m < arrSize; m++) {
+            controlArr.push(piecesParams[m]);
+
+            if (!this.verifyRepeatedNumbers(controlArr)) {
+              const pieceFormat: PieceType = {
+                top: piecesParams[i],
+                right: piecesParams[j],
+                bottom: piecesParams[k],
+                left: piecesParams[m],
+              };
+              this.setOffset(pieceFormat);
+              // console.log(
+              //   piecesParams[i],
+              //   piecesParams[j],
+              //   piecesParams[k],
+              //   piecesParams[m]
+              // );
+              this.drawPiece(
+                this.pieceW / 2,
+                this.pieceH / 2,
+                piecesParams[i],
+                piecesParams[j],
+                piecesParams[k],
+                piecesParams[m],
+                -1,
+                false
+              );
+            }
+
+            controlArr.pop();
+          }
+          controlArr.pop();
+        }
+        controlArr.pop();
+      }
+      controlArr.pop();
+    }
+  }
+
+  private verifyRepeatedNumbers(arr: number[]): boolean {
+    let counter_1 = 0;
+    let counter0 = 0;
+    let counter1 = 0;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] === -1) {
+        counter_1++;
+      } else if (arr[i] === 0) {
+        counter0++;
+      } else if (arr[i] === 1) {
+        counter1++;
+      }
+    }
+    if (counter_1 > 2 || counter0 > 2 || counter1 > 2) return true;
+
+    return false;
+  }
+
+  private setOffset(pieceType: PieceType): void {
+    this.offsetX = 0;
+    this.offsetY = 0;
+    if (pieceType.top === 1) {
+      this.offsetY += this.pieceRadius;
+    }
+    if (pieceType.left === 1) {
+      this.offsetX += this.pieceRadius;
+    }
   }
 
   public drawPiece(
     posX: number,
     posY: number,
+    top: number,
+    right: number,
+    bottom: number,
+    left: number,
     depth: number,
     transparent: boolean
   ): void {
@@ -84,7 +129,7 @@ export class Piece {
 
     var curve, curve_p1, curve_p2, curve_p3, curve_p4, curve_p5;
 
-    if (this.top == 0) {
+    if (top == 0) {
       g_vec1 = new Phaser.Math.Vector2(this.offsetX, this.offsetY);
       g_vec2 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW,
@@ -120,15 +165,15 @@ export class Piece {
       );
       curve_p2 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * controlPoint_1,
-        this.offsetY - (this.top * this.pieceRadius) / 2
+        this.offsetY - (top * this.pieceRadius) / 2
       );
       curve_p3 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * controlPoint_2,
-        this.offsetY - this.top * this.pieceRadius
+        this.offsetY - top * this.pieceRadius
       );
       curve_p4 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * controlPoint_3,
-        this.offsetY - (this.top * this.pieceRadius) / 2
+        this.offsetY - (top * this.pieceRadius) / 2
       );
       curve_p5 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * endPoint,
@@ -145,7 +190,7 @@ export class Piece {
       path.add(curve);
     }
 
-    if (this.right == 0) {
+    if (right == 0) {
       g_vec1 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW,
         this.offsetY
@@ -174,15 +219,15 @@ export class Piece {
         this.offsetY + this.pieceH * startPoint
       );
       curve_p2 = new Phaser.Math.Vector2(
-        this.offsetX + this.pieceW + (this.right * this.pieceRadius) / 2,
+        this.offsetX + this.pieceW + (right * this.pieceRadius) / 2,
         this.offsetY + this.pieceH * controlPoint_1
       );
       curve_p3 = new Phaser.Math.Vector2(
-        this.offsetX + this.pieceW + this.right * this.pieceRadius,
+        this.offsetX + this.pieceW + right * this.pieceRadius,
         this.offsetY + this.pieceH * controlPoint_2
       );
       curve_p4 = new Phaser.Math.Vector2(
-        this.offsetX + this.pieceW + (this.right * this.pieceRadius) / 2,
+        this.offsetX + this.pieceW + (right * this.pieceRadius) / 2,
         this.offsetY + this.pieceH * controlPoint_3
       );
       curve_p5 = new Phaser.Math.Vector2(
@@ -211,7 +256,7 @@ export class Piece {
       path.add(line1);
     }
 
-    if (this.bottom == 0) {
+    if (bottom == 0) {
       g_vec1 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW,
         this.offsetY + this.pieceH
@@ -241,15 +286,15 @@ export class Piece {
       );
       curve_p2 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * controlPoint_3,
-        this.offsetY + this.pieceH + (this.bottom * this.pieceRadius) / 2
+        this.offsetY + this.pieceH + (bottom * this.pieceRadius) / 2
       );
       curve_p3 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * controlPoint_2,
-        this.offsetY + this.pieceH + this.bottom * this.pieceRadius
+        this.offsetY + this.pieceH + bottom * this.pieceRadius
       );
       curve_p4 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * controlPoint_1,
-        this.offsetY + this.pieceH + (this.bottom * this.pieceRadius) / 2
+        this.offsetY + this.pieceH + (bottom * this.pieceRadius) / 2
       );
       curve_p5 = new Phaser.Math.Vector2(
         this.offsetX + this.pieceW * startPoint,
@@ -278,7 +323,7 @@ export class Piece {
       path.add(line1);
     }
 
-    if (this.left == 0) {
+    if (left == 0) {
       g_vec1 = new Phaser.Math.Vector2(
         this.offsetX,
         this.offsetY + this.pieceH
@@ -303,15 +348,15 @@ export class Piece {
         this.offsetY + this.pieceH * endPoint
       );
       curve_p2 = new Phaser.Math.Vector2(
-        this.offsetX - (this.left * this.pieceRadius) / 2,
+        this.offsetX - (left * this.pieceRadius) / 2,
         this.offsetY + this.pieceH * controlPoint_3
       );
       curve_p3 = new Phaser.Math.Vector2(
-        this.offsetX - this.left * this.pieceRadius,
+        this.offsetX - left * this.pieceRadius,
         this.offsetY + this.pieceH * controlPoint_2
       );
       curve_p4 = new Phaser.Math.Vector2(
-        this.offsetX - (this.left * this.pieceRadius) / 2,
+        this.offsetX - (left * this.pieceRadius) / 2,
         this.offsetY + this.pieceH * controlPoint_1
       );
       curve_p5 = new Phaser.Math.Vector2(
@@ -336,144 +381,50 @@ export class Piece {
       line1 = new Phaser.Curves.Line(g_vec1, g_vec2);
       path.add(line1);
     }
-
-    this.graphics.beginPath();
-
     path.closePath();
-    path.draw(this.graphics);
 
-    this.hitAreaPoints = path.getPoints();
-    this.graphics.lineStyle(this.lineWidth, 0x000000, 0.5);
-    this.graphics.fillStyle(this.fillColor, transparent ? 0.5 : 1);
-    this.graphics.fillPoints(this.hitAreaPoints);
+    this.pieceGraphic.beginPath();
+    path.draw(this.pieceGraphic);
+
+    const hitAreaPoints = path.getPoints();
+    this.pieceGraphic.lineStyle(this.lineWidth, 0x696969, 5);
+    this.pieceGraphic.fillStyle(this.fillColor, 1);
+    this.pieceGraphic.fillPoints(hitAreaPoints);
 
     // align piece to the center
-    if (this.left === 1) {
+    if (left === 1) {
       posX += this.pieceRadius / 2;
     }
-    if (this.right === 1) {
+    if (right === 1) {
       posX -= this.pieceRadius / 2;
     }
-    if (this.top === 1) {
+    if (top === 1) {
       posY += this.pieceRadius / 2;
     }
-    if (this.bottom === 1) {
+    if (bottom === 1) {
       posY -= this.pieceRadius / 2;
     }
 
-    // // console.log(posX);
-    // // console.log(posY);
-    // console.log(posX, posY, this.pieceW, this.pieceH);
-    // console.log(posX - this.pieceW / 2, posY - this.pieceH / 2);
-    // this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
-    // this.graphics.setPosition(100, 100);
-    this.graphics.setDepth(depth);
-
-    this.graphics.closePath();
-
-    //   var rt = this.scene.add
-    //   .renderTexture(posX, posY, this.pieceW, this.pieceW)
-    //   .setVisible(false);
-    // rt.draw(this.graphics);
-    // rt.saveTexture("answer_placeholder");
-  }
-
-  public getPieceGraphObj(): Phaser.GameObjects.Graphics {
-    return this.graphics;
-  }
-
-  public getHitAreaPoints(): any {
-    return this.hitAreaPoints;
-  }
-
-  public bindImageWithPiece(
-    image: Phaser.GameObjects.Image,
-    lineIndex: number,
-    columnIndex: number
-  ): Piece {
-    console.log("hey");
-    this.image = image;
-
-    // this.image.setMask(this.graphics.createGeometryMask());
-    // this.image.setInteractive();
-    // this.scene.input.setDraggable(this.image);
-    // this.image.input.draggable = true;
-
-    // this.image.setData("piece", { l: lineIndex, c: columnIndex });
-
-    var rt = this.scene.add.renderTexture(0, 0, 460, 435);
-    rt.draw(this.graphics).setVisible(false);
-    rt.saveTexture("outside_piece_" + lineIndex + "_" + columnIndex);
-
-    var img = this.scene.add.image(300, 300, "outside_piece_0_0");
-    this.image.setDepth(-1);
-    img.setDepth(-2);
-    this.image.setMask(img.createBitmapMask());
-
-    return this;
-  }
-
-  public resizeBindedPiece(
-    pieceW: number,
-    pieceH: number,
-    pieceRadius: number,
-    scaleValue: number
-  ): void {
-    this.pieceW = pieceW;
-    this.pieceH = pieceH;
-    this.pieceRadius = pieceRadius;
-    this.image.setScale(scaleValue);
-    this.graphics.setScale(scaleValue);
-  }
-
-  public setPiecePosition(posX: number, posY: number): void {
-    if (this.left === 1) {
-      posX += this.pieceRadius / 2;
+    this.pieceGraphic.closePath();
+    this.pieceGraphic.setVisible(false);
+    this.pieceGraphic.setDepth(-2);
+    let width = this.offsetX + this.pieceW;
+    let height = this.offsetY + this.pieceH;
+    if (right === 1) {
+      width += this.pieceRadius;
     }
-    if (this.right === 1) {
-      posX -= this.pieceRadius / 2;
+    if (bottom === 1) {
+      height += this.pieceRadius;
     }
-    if (this.top === 1) {
-      posY += this.pieceRadius / 2;
-    }
-    if (this.bottom === 1) {
-      posY -= this.pieceRadius / 2;
-    }
+    const pieceTexture = this.scene.add
+      .renderTexture(0, 0, width, height)
+      .setVisible(false);
+    pieceTexture.draw(this.pieceGraphic);
+    pieceTexture.saveTexture(`piece_${top}_${right}_${bottom}_${left}`);
 
-    this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
-  }
+    // var img = this.scene.add.image(300, 100, "outside_piece_0_-1_1_0");
 
-  // public setPiecePosition2(posX: number, posY: number): void {
-  //   this.graphics.setPosition(posX - this.pieceW / 2, posY - this.pieceH / 2);
-  // }
-
-  public setImagePosition(posX: number, posY: number): void {
-    this.image.setPosition(posX, posY);
-  }
-
-  public setBindedPiecePosition(posX: number, posY: number): void {
-    this.setPiecePosition(posX, posY);
-    this.setImagePosition(posX, posY);
-  }
-
-  public getPieceLockCoor(): PieceCoor {
-    return this.pieceLockCoor;
-  }
-
-  public getImageObj(): Phaser.GameObjects.Image {
-    return this.image;
-  }
-
-  public setPieceDepth(depthValue: number): void {
-    this.image.setDepth(depthValue);
-    // this.graphics.setDepth(depthValue);
-  }
-
-  public setPieceInitCoors(coors: PieceCoor): void {
-    this.pieceInitCoors = coors;
-  }
-
-  public getPieceInitCoors(): PieceCoor {
-    return this.pieceInitCoors;
+    // reset graphics
+    this.pieceGraphic.clear();
   }
 }

@@ -1,13 +1,14 @@
 import { CONST } from "../const/const";
 import { TopBar } from "../objects/top-bar";
 import { PuzzleGrid } from "../objects/puzzle-grid";
-import { Puzzle } from "../objects/puzzle";
+import { Puzzle } from "../objects/puzzle-new";
 import { checkLockPosition } from "../utils/puzzle";
 import { PiecesKeeper } from "../objects/pieces-keeper";
 import { PieceCoor, PiecesBoard } from "../interfaces/utils.interface";
 import { Piece } from "../objects/piece";
 import { Clock } from "../objects/clock";
 import { Background } from "../objects/background";
+import { PiecesGenerator } from "../objects/pieces-generator";
 
 export class GameScene extends Phaser.Scene {
   // field and game setting
@@ -121,6 +122,16 @@ export class GameScene extends Phaser.Scene {
     this.outsidePiecesScale =
       (this.gameWidth * pieceReductionValue) / this.pieceW;
 
+    var piecesGenerator = new PiecesGenerator(
+      this,
+      this.pieceW,
+      this.pieceH,
+      this.pieceRadius,
+      [-1, 0, 1]
+    );
+
+    console.log(this.scene.scene.textures.list);
+
     // console.log(this.numHorizontalPieces);
     // console.log(this.numVerticalPieces);
     // console.log(this.pieceW);
@@ -137,6 +148,7 @@ export class GameScene extends Phaser.Scene {
       this.outsidePiecesScale,
       puzzleGrid.getPiecesBoardDimensions()
     );
+
     this.piecesRightCoors = puzzle.generatePiecesInPuzzleBoard(
       puzzleGrid.getImage(),
       this.piecePositionHelper,
@@ -144,76 +156,78 @@ export class GameScene extends Phaser.Scene {
     );
     const piecesArr = puzzle.generateOutsidePieces(puzzleGrid.getImageAux());
 
-    const container1: PiecesBoard = {
-      x: this.pieceH * this.outsidePiecesScale,
-      y: this.gameHeight * 0.1,
-      width:
-        puzzleGrid.getImage().getBounds().left -
-        this.pieceH * this.outsidePiecesScale,
-      height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
-    };
-    const container2: PiecesBoard = {
-      x:
-        puzzleGrid.getImage().getBounds().right +
-        this.pieceH * this.outsidePiecesScale,
-      y: this.gameHeight * 0.1,
-      width: this.gameWidth - this.pieceH * this.outsidePiecesScale,
-      height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
-    };
-    new PiecesKeeper(
-      this,
-      this.pieceW * 0.4,
-      this.pieceH * 0.4,
-      container1,
-      container2,
-      puzzle.convertTo1D(piecesArr)
-    );
+    // const container1: PiecesBoard = {
+    //   x: this.pieceH * this.outsidePiecesScale,
+    //   y: this.gameHeight * 0.1,
+    //   width:
+    //     puzzleGrid.getImage().getBounds().left -
+    //     this.pieceH * this.outsidePiecesScale,
+    //   height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
+    // };
+    // const container2: PiecesBoard = {
+    //   x:
+    //     puzzleGrid.getImage().getBounds().right +
+    //     this.pieceH * this.outsidePiecesScale,
+    //   y: this.gameHeight * 0.1,
+    //   width: this.gameWidth - this.pieceH * this.outsidePiecesScale,
+    //   height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
+    // };
+    // new PiecesKeeper(
+    //   this,
+    //   this.pieceW * 0.4,
+    //   this.pieceH * 0.4,
+    //   container1,
+    //   container2,
+    //   puzzle.convertTo1D(piecesArr)
+    // );
 
-    // set pieces positions outside the puzzle board
+    // // set pieces positions outside the puzzle board
 
-    this.input.on("dragstart", (pointer: any, gameObject: any) =>
-      this.dragHandlerStart(pointer, gameObject, piecesArr)
-    );
-    this.input.on(
-      "drag",
-      (pointer: any, gameObject: any, dragX: number, dragY: number) =>
-        this.dragHandler(gameObject, dragX, dragY, piecesArr)
-    );
-    this.input.on("dragend", (pointer: any, gameObject: any) =>
-      this.dragEndHandler(pointer, gameObject, piecesArr)
-    );
+    // this.input.on("dragstart", (pointer: any, gameObject: any) =>
+    //   this.dragHandlerStart(pointer, gameObject, piecesArr)
+    // );
+    // this.input.on(
+    //   "drag",
+    //   (pointer: any, gameObject: any, dragX: number, dragY: number) =>
+    //     this.dragHandler(gameObject, dragX, dragY, piecesArr)
+    // );
+    // this.input.on("dragend", (pointer: any, gameObject: any) =>
+    //   this.dragEndHandler(pointer, gameObject, piecesArr)
+    // );
+
+    // /**
+    //  * SOUND
+    //  *
+    //  */
+    // this.select_sound = this.sound.add("select");
+    // this.drop_sound = this.sound.add("drop_piece");
+    // this.right_sound = this.sound.add("right_place");
+    // this.complete_sound = this.sound.add("complete_puzzle");
+    // // // text
+    // let updatedText = "";
+    // if (this.timeToComplete) {
+    //   // this.displayText = "Tempo para acabar o jogo\n";
+    //   CONST.TIME = this.timeToComplete;
+    //   updatedText = `${CONST.TIME}`;
+    //   // timer
+    //   this.timedEvent = this.time.delayedCall(
+    //     this.timeToComplete * 1000,
+    //     this.onEventTimeOver,
+    //     [],
+    //     this
+    //   );
+
+    //   this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
+    //   this.clock.updateTime(updatedText);
+    // }
+
     this.input.on(
       "pointerdown",
       function (pointer: any) {
-        // console.log(pointer.x, pointer.y);
+        console.log(pointer.x, pointer.y);
       },
       this
     );
-    /**
-     * SOUND
-     *
-     */
-    this.select_sound = this.sound.add("select");
-    this.drop_sound = this.sound.add("drop_piece");
-    this.right_sound = this.sound.add("right_place");
-    this.complete_sound = this.sound.add("complete_puzzle");
-    // // text
-    let updatedText = "";
-    if (this.timeToComplete) {
-      // this.displayText = "Tempo para acabar o jogo\n";
-      CONST.TIME = this.timeToComplete;
-      updatedText = `${CONST.TIME}`;
-      // timer
-      this.timedEvent = this.time.delayedCall(
-        this.timeToComplete * 1000,
-        this.onEventTimeOver,
-        [],
-        this
-      );
-
-      this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
-      this.clock.updateTime(updatedText);
-    }
   }
 
   update(): void {

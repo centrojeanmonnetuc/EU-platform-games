@@ -123,47 +123,34 @@ export class Puzzle {
           type_bottom = 0;
         }
 
-        const graphic_piece = new Piece(
-          this.scene,
-          this.pieceW,
-          this.pieceH,
-          this.pieceRadius,
-          g_offsetX,
-          g_offsetY,
-          type_top,
-          type_right,
-          type_bottom,
-          type_left,
-          1,
-          0x4b86b4,
-          { x: 0, y: 0 }
-        );
-
         // socket info
         let offsetX = 0,
           offsetY = 0;
         if (type_left === 1) {
-          offsetX -= this.pieceRadius / 2;
-        }
-        if (type_right === 1) {
           offsetX += this.pieceRadius / 2;
         }
-        if (type_top === 1) {
-          offsetY -= this.pieceRadius / 2;
+        if (type_right === 1) {
+          offsetX -= this.pieceRadius / 2;
         }
-        if (type_bottom === 1) {
+        if (type_top === 1) {
           offsetY += this.pieceRadius / 2;
         }
+        if (type_bottom === 1) {
+          offsetY -= this.pieceRadius / 2;
+        }
         // get the piece right lock coordinates
+        // fit in pieces - offset radius
         const lockX =
-          image.getTopLeft().x + i * this.pieceW + this.pieceW / 2 + offsetX;
+          image.getTopLeft().x + i * this.pieceW + this.pieceW / 2 - offsetX;
         const lockY =
-          image.getTopLeft().y + j * this.pieceH + this.pieceH / 2 + offsetY;
+          image.getTopLeft().y + j * this.pieceH + this.pieceH / 2 - offsetY;
         const rightCoorObj = { x: lockX, y: lockY };
         this.piecesRightLockCoors.push(rightCoorObj);
 
         if (piecePositionHelper) {
-          graphic_piece.drawPiece(lockX, lockY, -1, backgroundPuzzleImage);
+          const pieceType = `piece_${type_top}_${type_right}_${type_bottom}_${type_left}`;
+          const piece = this.scene.add.image(lockX, lockY, pieceType);
+          piece.setAlpha(0.3);
         }
 
         piece_type_obj = {
@@ -197,10 +184,10 @@ export class Puzzle {
     var ARR_MOVE_PIECES_LINE: Piece[] = [];
     var ARR_MOVE_PIECES: Piece[][] = [];
 
-    // for (let j = 0; j < this.numVerticalPieces; j++) {
-    //   for (let i = 0; i < this.numHorizontalPieces; i++) {
-    for (let j = 0; j < 1; j++) {
-      for (let i = 0; i < 1; i++) {
+    for (let j = 0; j < this.numVerticalPieces; j++) {
+      for (let i = 0; i < this.numHorizontalPieces; i++) {
+        // for (let j = 0; j < 1; j++) {
+        //   for (let i = 0; i < 1; i++) {
         info_piece = this.piecesInfoArr[j][i];
 
         // height
@@ -241,6 +228,29 @@ export class Puzzle {
 
         console.log(width_piece_rt);
         console.log(height_piece_rt);
+        const pieceType = `piece_${info_piece.t}_${info_piece.r}_${info_piece.b}_${info_piece.l}`;
+        const piece = this.scene.add.image(
+          width_piece_rt / 2,
+          height_piece_rt / 2,
+          pieceType
+        );
+
+        pieceImage.setDepth(2);
+        piece.setDepth(1);
+        var lol = pieceImage.setMask(piece.createBitmapMask());
+        // console.log(lol);
+
+        // const outsidePiece = "outside_" + pieceType;
+        // var rt = this.scene.add.renderTexture(
+        //   0,
+        //   0,
+        //   width_piece_rt,
+        //   height_piece_rt
+        // );
+        // rt.draw(lol).setVisible(false);
+        // rt.saveTexture(outsidePiece);
+
+        // var img2 = this.scene.add.image(600, 600, outsidePiece);
 
         // // 1: egde case -> find dual piece socket
         // // 1 for horizontal dual socket
@@ -268,22 +278,22 @@ export class Puzzle {
           this.numHorizontalPieces * j + i
         ];
 
-        const piece = new Piece(
-          this.scene,
-          this.pieceW,
-          this.pieceH,
-          this.pieceRadius,
-          g_offsetX,
-          g_offsetY,
-          info_piece.t,
-          info_piece.r,
-          info_piece.b,
-          info_piece.l,
-          0.5,
-          0x696969,
-          { x: pieceRightLockCoor.x, y: pieceRightLockCoor.y }
-        );
-        piece.drawPiece(this.pieceW / 2, this.pieceH / 2, -1, false);
+        // const piece = new Piece(
+        //   this.scene,
+        //   this.pieceW,
+        //   this.pieceH,
+        //   this.pieceRadius,
+        //   g_offsetX,
+        //   g_offsetY,
+        //   info_piece.t,
+        //   info_piece.r,
+        //   info_piece.b,
+        //   info_piece.l,
+        //   0.5,
+        //   0x696969,
+        //   { x: pieceRightLockCoor.x, y: pieceRightLockCoor.y }
+        // );
+        // piece.drawPiece(this.pieceW / 2, this.pieceH / 2, -1, false);
         // console.log(piece.getPieceGraphObj());
         // piece.drawPiece(
         //   puzzleImage.getTopLeft().x + piece_draw_x,
@@ -292,8 +302,8 @@ export class Puzzle {
         // );
 
         // piece.bindImageWithPiece(pieceImage, j, i);
-        const pieceObj: Piece = piece.bindImageWithPiece(pieceImage, j, i);
-        ARR_MOVE_PIECES_LINE.push(pieceObj);
+        // const pieceObj: Piece = piece.bindImageWithPiece(pieceImage, j, i);
+        // ARR_MOVE_PIECES_LINE.push(pieceObj);
 
         // // set the piece position
         // var random_piece_pos = {
