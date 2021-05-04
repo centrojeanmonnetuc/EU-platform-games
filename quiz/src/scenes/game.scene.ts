@@ -41,6 +41,10 @@ export class GameScene extends Phaser.Scene {
   // emitters
   private mainEmitter: Phaser.Events.EventEmitter;
 
+  // sounds
+  private rightAnswer: Phaser.Sound.BaseSound;
+  private wrongAnswer: Phaser.Sound.BaseSound;
+
   constructor() {
     super({
       key: "GameScene",
@@ -67,12 +71,16 @@ export class GameScene extends Phaser.Scene {
      */
     const questContainerWidth = this.gameWidth * this.containerW;
     const questContainerHeight = this.gameHeight * this.qContainerH;
+    const questContainerPosX = this.gameWidth / 2;
+    const questContainerPosY = questContainerWidth / 4;
     this.questionContainer = new Question(
       this,
+      questContainerPosX,
+      questContainerPosY,
       questContainerWidth,
-      questContainerHeight
+      questContainerHeight,
+      this.mainEmitter
     );
-    this.questionContainer.center(this.gameWidth);
 
     /**
      * Question numerator
@@ -117,6 +125,7 @@ export class GameScene extends Phaser.Scene {
       this.mainEmitter
     );
     this.mainEmitter.on("changeQuestion", this.changeQuestionHandler, this);
+    this.buttons.enableLeftButton(false);
 
     /**
      * Animation
@@ -138,11 +147,21 @@ export class GameScene extends Phaser.Scene {
     );
     this.mainEmitter.on("reviewGame", this.reviewGameHandler, this);
 
-    /**
-     * Clock
-     */
-    this.clock = new Clock(this, this.gameWidth / 2, 150, 100, 100);
+    if (this.timeToRespQuestion) {
+      /**
+       * Clock
+       */
+      this.clock = new Clock(this, this.gameWidth / 2, 150, 100, 100);
+    }
 
+    /**
+     * SOUNDS
+     */
+
+    this.rightAnswer = this.sound.add("right_answer");
+    this.wrongAnswer = this.sound.add("wrong_answer");
+
+    // START GAME
     this.changeQuestionHandler("right");
 
     // this.input.on(
@@ -165,7 +184,7 @@ export class GameScene extends Phaser.Scene {
   private onEventTimeOver(): void {
     console.log("time to respond question over");
 
-    // this.clock.cancelAnims();
+    this.clock.cancelAnims();
 
     this.mainEmitter.emit("selectedAnswer", null, false);
   }
@@ -192,6 +211,12 @@ export class GameScene extends Phaser.Scene {
         this.character.deleteCharacter();
         this.mainEmitter.removeListener("selectedAnswer");
         CONST.GAME_OVER = true;
+        // remove clock animation for the game resume
+        if (this.timeToRespQuestion) {
+          this.clock.cancelAnims();
+          this.clock.clearClock();
+          this.clock.createClock();
+        }
       }
       this.buttons.enableRightBtn(false);
       // launch
@@ -214,18 +239,23 @@ export class GameScene extends Phaser.Scene {
         [],
         this
       );
-      this.clock.updateTime(`${this.timeToRespQuestion}`);
+      this.clock.clearClock();
+      this.clock.createClock();
     }
 
-    // set new question and answers
+    // clear and set QUESTIONS
     var quest = this.questions[CONST.CURRENT_QUESTION].question;
     this.questionContainer.setQuestionText(quest);
+    this.questionContainer.clearAnswerInfo();
+
+    // clear and set ANSWERS
     var answers: string[] = [];
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer1);
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer2);
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer3);
     answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer4);
     this.answersContainer.setAnswers(answers);
+    this.answersContainer.changeAnswerAlpha(null, null, false);
 
     if (CONST.GAME_OVER) {
       // set buttons
@@ -241,22 +271,41 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.buttons.enableRightBtn(true);
       }
-      // set answers
+      // set USER inputs to answers
       const currentQuestIndex = CONST.CURRENT_QUESTION;
       const userAnswerObj: UserAnswers = CONST.USER_ANSWERS[currentQuestIndex];
-      this.answersContainer.setReviewAnswers({
-        userIndex: userAnswerObj.userIndex,
-        rightIndex: userAnswerObj.rightIndex,
-      });
+      // this.answersContainer.setReviewAnswers({
+      //   userIndex: userAnswerObj.userIndex,
+      //   rightIndex: userAnswerObj.rightIndex,
+      // });
 
+      this.answersContainer.resumeUserAnswers(
+        userAnswerObj.userIndex,
+        userAnswerObj.rightIndex
+      );
+
+      // draw green border on right answer
+      this.answersContainer.drawBorderOnRightAnswer(userAnswerObj.rightIndex);
+
+      // decrease the alpha on the others answers
+      this.answersContainer.changeAnswerAlpha(
+        userAnswerObj.userIndex,
+        userAnswerObj.rightIndex,
+        true
+      );
+
+      // question is wrong or right answered
+      this.mainEmitter.emit(
+        "answerInfoInQuestionContainer",
+        userAnswerObj.rightIndex === userAnswerObj.userIndex
+      );
+
+      // set time if exists
       if (this.timeToRespQuestion) {
-        // set time
         this.clock.updateTime(CONST.USER_TIMES[currentQuestIndex]);
       }
     } else {
       this.character.deleteCharacter();
-
-      this.buttons.enableLeftButton(false);
 
       this.mainEmitter.on("selectedAnswer", this.selectedAnswerHandler, this);
 
@@ -272,8 +321,6 @@ export class GameScene extends Phaser.Scene {
     // disable emitter
     this.mainEmitter.removeListener("selectedAnswer");
 
-    console.log(responded);
-
     // disable time
     if (this.timeToRespQuestion) {
       // STOP CLOCK
@@ -282,17 +329,43 @@ export class GameScene extends Phaser.Scene {
       this.resetingClock = true;
       // save time
       CONST.USER_TIMES.push(this.currentTime);
+
+      this.clock.cancelAnims();
     }
 
-    // verify if is the correct answer
+    // verify if its the correct answer
     const questionObj = this.questions[CONST.CURRENT_QUESTION];
     let userAnswer = -1;
     if (responded) {
+      // select user answer
       userAnswer = answerObj.getAnswerIndex();
       const userAnswerInfo = questionObj.rightAnswer === userAnswer;
-      answerObj.userInputHandler(userAnswerInfo);
+      answerObj.setSelected(userAnswerInfo);
+
+      // draw green border on right answer
+      this.answersContainer.drawBorderOnRightAnswer(questionObj.rightAnswer);
+
+      // decrease the alpha on the others answers
+      this.answersContainer.changeAnswerAlpha(
+        userAnswer,
+        questionObj.rightAnswer,
+        true
+      );
+      // play answer sound
+      if (userAnswerInfo) {
+        this.rightAnswer.play();
+      } else {
+        this.wrongAnswer.play();
+      }
     } else {
-      this.answersContainer.revealRightAnswer(questionObj.rightAnswer);
+      // draw green border on right answer
+      this.answersContainer.drawBorderOnRightAnswer(questionObj.rightAnswer);
+      // decrease the alpha on the others answers
+      this.answersContainer.changeAnswerAlpha(
+        null,
+        questionObj.rightAnswer,
+        true
+      );
     }
 
     // play character animation
@@ -308,5 +381,8 @@ export class GameScene extends Phaser.Scene {
 
   private completedAnimationHandler(): void {
     this.buttons.enableRightBtn(true);
+    const obj: UserAnswers = CONST.USER_ANSWERS[CONST.CURRENT_QUESTION];
+    const userAnswerInfo: boolean = obj.userIndex === obj.rightIndex;
+    this.mainEmitter.emit("answerInfoInQuestionContainer", userAnswerInfo);
   }
 }

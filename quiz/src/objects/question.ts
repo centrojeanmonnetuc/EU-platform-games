@@ -6,16 +6,37 @@ export class Question {
   private bgColor: number = 0xffffff;
 
   private container: Phaser.GameObjects.Container;
+  private posX: number;
+  private posY: number;
   private questions_w: number;
   private questions_h: number;
 
   private questionText: DisplayText;
 
-  constructor(scene: Phaser.Scene, width: number, height: number) {
+  // right or wrong image
+  private image: Phaser.GameObjects.Image;
+  // animations
+  private tween: Phaser.Tweens.Tween;
+
+  // event
+  private emitter: Phaser.Events.EventEmitter;
+
+  constructor(
+    scene: Phaser.Scene,
+    posX: number,
+    posY: number,
+    width: number,
+    height: number,
+    emitter: Phaser.Events.EventEmitter
+  ) {
     this.scene = scene;
+    this.posX = posX;
+    this.posY = posY;
     this.questions_w = width;
     this.questions_h = height;
+    this.emitter = emitter;
 
+    this.answerInfo(false);
     this.createContainer(width, height);
   }
 
@@ -37,14 +58,15 @@ export class Question {
     );
     this.container.add(graphics);
     this.container.add(this.questionText.getText());
+
+    this.container.setPosition(this.posX - this.questions_w / 2, this.posY);
+
+    // event listener
+    // answerInfoInQuestionContainer
+    this.emitter.on("answerInfoInQuestionContainer", this.answerInfo, this);
   }
 
-  public center(gameWidth: number): void {
-    this.container.setPosition(
-      gameWidth / 2 - this.questions_w / 2,
-      this.questions_w / 4
-    );
-  }
+  public center(gameWidth: number): void {}
 
   public getCenterX(gameWidth: number): number {
     return gameWidth / 2 - this.questions_w / 2;
@@ -56,5 +78,30 @@ export class Question {
 
   public setQuestionText(text: string): void {
     this.questionText.changeDisplayedText(text);
+  }
+
+  public answerInfo(userRight: boolean): void {
+    const scaleValue = 0.5;
+    const containerLeft = this.posX - this.questions_w / 2;
+    if (userRight) {
+      this.image = this.scene.add.image(containerLeft, this.posY, "correct");
+    } else {
+      this.image = this.scene.add.image(containerLeft, this.posY, "wrong");
+    }
+    this.image.setScale(scaleValue);
+    this.tween = this.scene.tweens.add({
+      targets: this.image,
+      scale: scaleValue * 1.5,
+      duration: 800,
+      ease: "Linear",
+      yoyo: true,
+      repeat: -1,
+      hold: 800,
+    });
+  }
+
+  public clearAnswerInfo(): void {
+    this.image.destroy();
+    this.tween.stop();
   }
 }

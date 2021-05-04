@@ -6,11 +6,16 @@ export class Clock {
   private clockImage: Phaser.GameObjects.Image;
   private timeContainer: Phaser.GameObjects.Container;
 
+  private posX: number;
+  private posY: number;
+  private width: number;
+  private height: number;
+
   private text: Phaser.GameObjects.Text;
   private endingColor: number = 0xff0000;
 
   // animations
-  private animClock: Phaser.Tweens.Tween;
+  private animClock: Phaser.Tweens.Tween | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -20,12 +25,23 @@ export class Clock {
     height: number
   ) {
     this.scene = scene;
+    this.posX = posX;
+    this.posY = posY;
+    this.width = width;
+    this.height = height;
 
+    this.createClock();
+  }
+
+  public createClock(): void {
     this.clockImage = this.scene.add.image(0, 0, "hourglass");
-    this.clockImage = scaleImageToFitFrame(width, height, this.clockImage);
-    // this.clockImage.setPosition(width / 2, this.clockImage.y);
+    this.clockImage = scaleImageToFitFrame(
+      this.width,
+      this.height,
+      this.clockImage
+    );
     this.timeContainer = this.scene.add.container();
-    this.text = this.scene.add.text(0, 16, "100", {
+    this.text = this.scene.add.text(0, 16, "--", {
       fontFamily: "Arial",
       fontSize: 64,
       color: "#000000",
@@ -41,11 +57,11 @@ export class Clock {
 
     const offsetX =
       this.clockImage.getBounds().left + this.text.getBounds().right;
-    this.timeContainer.setPosition(posX, posY);
+    this.timeContainer.setPosition(this.posX, this.posY);
   }
 
   public updateTime(time: string): void {
-    if (parseInt(time) === 8) {
+    if (parseInt(time) === 8 && this.animClock === null) {
       this.shakeImage();
     }
     if (parseInt(time) <= 6) {
@@ -55,7 +71,7 @@ export class Clock {
   }
 
   private shakeImage(): void {
-    this.scene.tweens.add({
+    this.animClock = this.scene.tweens.add({
       targets: this.clockImage,
       duration: 500,
       ease: "Sine.easeInOut",
@@ -68,6 +84,15 @@ export class Clock {
   }
 
   public cancelAnims(): void {
-    this.scene.tweens.destroy();
+    if (this.animClock !== null) {
+      this.animClock.stop();
+      this.animClock = null;
+    }
+  }
+
+  public clearClock(): void {
+    this.clockImage.destroy();
+    this.text.destroy();
+    this.timeContainer.destroy();
   }
 }

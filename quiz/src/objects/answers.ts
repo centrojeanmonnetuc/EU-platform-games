@@ -59,32 +59,31 @@ export class Answers {
     }
   }
 
-  public getAnswerAtIndex(index: number): Phaser.GameObjects.Container {
-    return this.answersContainers[index].getAnswerContainer();
+  public drawBorderOnRightAnswer(index: number): void {
+    this.answersContainers[index].drawBorder(true);
+    this.answersContainers[index].setDefault();
   }
 
-  public setReviewAnswers(userAnswerObj: UserAnswers): void {
-    let obj;
+  public changeAnswerAlpha(
+    userAnswer: number | null,
+    rightAnswer: number | null,
+    flag: boolean
+  ): void {
     for (let i = 0; i < this.numAnswers; i++) {
-      obj = this.answersContainers[i];
-      if (i === userAnswerObj.userIndex) {
-        obj.setAnswerColor("yellow");
-      } else if (i === userAnswerObj.rightIndex) {
-        obj.setAnswerColor("green");
+      if (flag) {
+        if (i !== rightAnswer) {
+          this.answersContainers[i].changeSignificance(flag);
+        }
       } else {
-        obj.setAnswerColor("red");
+        this.answersContainers[i].changeSignificance(flag);
       }
     }
   }
 
-  public revealRightAnswer(rightIndex: number): void {
-    let obj;
+  public resumeUserAnswers(userIndex: number, rightIndex: number): void {
     for (let i = 0; i < this.numAnswers; i++) {
-      obj = this.answersContainers[i];
-      if (i === rightIndex) {
-        obj.setAnswerColor("green");
-      } else {
-        obj.setAnswerColor("red");
+      if (i === userIndex) {
+        this.answersContainers[i].setSelected(userIndex === rightIndex);
       }
     }
   }

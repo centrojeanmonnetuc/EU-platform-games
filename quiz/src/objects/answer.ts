@@ -17,7 +17,9 @@ export class Answer {
   private bgColor: number = 0xffffff;
   private rightColor: number = 0x1dca3c;
   private wrongColor: number = 0xca421d;
-  private selectedColor: number = 0xffcc00;
+  private yellow: number = 0xffcc00;
+  private selectedColor: number = 0xd3d3d3;
+  private borderSize: number = 5;
 
   // event
   private emitter: Phaser.Events.EventEmitter;
@@ -106,16 +108,8 @@ export class Answer {
     return this.index;
   }
 
-  public userInputHandler(userRight: boolean): void {
-    if (userRight) {
-      this.paintContainer(this.rightColor);
-    } else {
-      this.paintContainer(this.wrongColor);
-    }
-  }
-
   private paintContainer(color: number): void {
-    this.graphics.clear();
+    // this.graphics.clear();
     this.graphics.fillStyle(color, 1);
     this.graphics.fillRoundedRect(
       this.posX - this.answerW / 2,
@@ -125,13 +119,48 @@ export class Answer {
     );
   }
 
-  public setAnswerColor(type: string): void {
-    if (type === "red") {
-      this.paintContainer(this.wrongColor);
-    } else if (type === "green") {
-      this.paintContainer(this.rightColor);
-    } else if (type === "yellow") {
-      this.paintContainer(this.selectedColor);
+  public setSelected(userRight: boolean): void {
+    this.drawBorder(userRight);
+    this.graphics.fillStyle(this.selectedColor, 1);
+    this.graphics.fillRoundedRect(
+      this.posX - this.answerW / 2,
+      this.posY - this.answerH / 2,
+      this.answerW,
+      this.answerH
+    );
+  }
+
+  public drawBorder(userRight: boolean): void {
+    this.graphics.fillStyle(userRight ? this.rightColor : this.wrongColor, 1);
+    this.graphics.fillRoundedRect(
+      this.posX - this.answerW / 2 - this.borderSize,
+      this.posY - this.answerH / 2 - this.borderSize,
+      this.answerW + this.borderSize * 2,
+      this.answerH + this.borderSize * 2
+    );
+  }
+
+  public setDefault(): void {
+    this.graphics.fillStyle(this.bgColor, 1);
+    this.graphics.fillRoundedRect(
+      this.posX - this.answerW / 2,
+      this.posY - this.answerH / 2,
+      this.answerW,
+      this.answerH
+    );
+  }
+
+  public clearGraphics(): void {
+    this.graphics.clear();
+    this.setDefault();
+  }
+
+  public changeSignificance(flag: boolean): void {
+    if (flag) {
+      this.container.setAlpha(0.5);
+    } else {
+      this.container.setAlpha(1);
+      this.clearGraphics();
     }
   }
 }

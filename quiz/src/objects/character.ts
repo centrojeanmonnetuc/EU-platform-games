@@ -25,8 +25,8 @@ export class Character {
   private emitter: Phaser.Events.EventEmitter;
 
   // debug
-  private debug: number = 100;
-  // private debug: number = 1;
+  // private debug: number = 100;
+  private debug: number = 1;
 
   constructor(
     scene: Phaser.Scene,
