@@ -1,5 +1,5 @@
 import { CONST } from "../const/const";
-import { Piece } from "./piece";
+import { Piece } from "./piece-new";
 import {
   PieceInfo,
   PieceBoardPos,
@@ -63,8 +63,6 @@ export class Puzzle {
     var ARR_G_PIECES: PieceInfo[][] = [];
     var piece_type_obj: PieceInfo;
 
-    var g_offsetX = 0;
-    var g_offsetY = 0;
     var puzzle_offset = image.getTopLeft();
     var type_top: number,
       type_right: number,
@@ -170,24 +168,16 @@ export class Puzzle {
     return this.piecesRightLockCoors;
   }
 
-  public generateOutsidePieces(
-    puzzleImage: Phaser.GameObjects.Image
-  ): Piece[][] {
-    var g_offsetX = 0;
-    var g_offsetY = 0;
-
+  public generateOutsidePieces(puzzleImage: Phaser.GameObjects.Image): Piece[] {
     var width_piece_rt: number,
       height_piece_rt: number,
       piece_draw_x: number,
       piece_draw_y: number;
     var info_piece: PieceInfo;
-    var ARR_MOVE_PIECES_LINE: Piece[] = [];
-    var ARR_MOVE_PIECES: Piece[][] = [];
+    var arrRefPieces: Piece[] = [];
 
     for (let j = 0; j < this.numVerticalPieces; j++) {
       for (let i = 0; i < this.numHorizontalPieces; i++) {
-        // for (let j = 0; j < 1; j++) {
-        //   for (let i = 0; i < 1; i++) {
         info_piece = this.piecesInfoArr[j][i];
 
         // height
@@ -218,7 +208,7 @@ export class Puzzle {
           )
           .draw(puzzleImage, -piece_draw_x, -piece_draw_y)
           .saveTexture("piece[" + j + "," + i + "]");
-        var pieceImage = this.scene.add
+        const pieceImage = this.scene.add
           .image(
             width_piece_rt / 2,
             height_piece_rt / 2,
@@ -226,8 +216,6 @@ export class Puzzle {
           )
           .setOrigin(0.5);
 
-        console.log(width_piece_rt);
-        console.log(height_piece_rt);
         const pieceType = `piece_${info_piece.t}_${info_piece.r}_${info_piece.b}_${info_piece.l}`;
         const piece = this.scene.add.image(
           width_piece_rt / 2,
@@ -235,111 +223,17 @@ export class Puzzle {
           pieceType
         );
 
-        pieceImage.setDepth(2);
-        piece.setDepth(1);
-        var lol = pieceImage.setMask(piece.createBitmapMask());
-        // console.log(lol);
-
-        // const outsidePiece = "outside_" + pieceType;
-        // var rt = this.scene.add.renderTexture(
-        //   0,
-        //   0,
-        //   width_piece_rt,
-        //   height_piece_rt
-        // );
-        // rt.draw(lol).setVisible(false);
-        // rt.saveTexture(outsidePiece);
-
-        // var img2 = this.scene.add.image(600, 600, outsidePiece);
-
-        // // 1: egde case -> find dual piece socket
-        // // 1 for horizontal dual socket
-        // // 2 for vertical dual socker
-        // if (dualSocketPieceVerifier(info_piece) == 1) {
-        //   piece_draw_x += this.pieceRadius;
-        // }
-        // if (dualSocketPieceVerifier(info_piece) == 2) {
-        //   piece_draw_y += this.pieceRadius;
-        // }
-        // // 2: edge case -> in the last column there are pieces that are "dual socket" but finish the right side at 0
-        // if (info_piece.l == 1 && info_piece.r == 0) {
-        //   piece_draw_x += this.pieceRadius;
-        // }
-        // // 3: edge case -> in the last line there are pieces that are "dual socket" but finish the bottom at 0
-        // if (info_piece.t == 1 && info_piece.b == 0) {
-        //   piece_draw_y += this.pieceRadius;
-        // }
-
-        // // get the piece right lock coordinates
-        // const lockX = i * this.pieceW + this.pieceW / 2;
-        // const lockY = j * this.pieceH + this.pieceH / 2;
-
-        const pieceRightLockCoor = this.piecesRightLockCoors[
-          this.numHorizontalPieces * j + i
-        ];
-
-        // const piece = new Piece(
-        //   this.scene,
-        //   this.pieceW,
-        //   this.pieceH,
-        //   this.pieceRadius,
-        //   g_offsetX,
-        //   g_offsetY,
-        //   info_piece.t,
-        //   info_piece.r,
-        //   info_piece.b,
-        //   info_piece.l,
-        //   0.5,
-        //   0x696969,
-        //   { x: pieceRightLockCoor.x, y: pieceRightLockCoor.y }
-        // );
-        // piece.drawPiece(this.pieceW / 2, this.pieceH / 2, -1, false);
-        // console.log(piece.getPieceGraphObj());
-        // piece.drawPiece(
-        //   puzzleImage.getTopLeft().x + piece_draw_x,
-        //   puzzleImage.getTopLeft().y + piece_draw_y,
-        //   -1
-        // );
-
-        // piece.bindImageWithPiece(pieceImage, j, i);
-        // const pieceObj: Piece = piece.bindImageWithPiece(pieceImage, j, i);
-        // ARR_MOVE_PIECES_LINE.push(pieceObj);
-
-        // // set the piece position
-        // var random_piece_pos = {
-        //   x: getRndInteger(0, 400),
-        //   y: getRndInteger(0, 600),
-        // };
-
-        // piece.resizeBindedPiece(
-        //   this.pieceScaleValue * this.pieceW,
-        //   this.pieceScaleValue * this.pieceH,
-        //   this.pieceScaleValue * this.pieceRadius,
-        //   this.pieceScaleValue
-        // );
-        // piece.setBindedPiecePosition(random_piece_pos.x, random_piece_pos.y);
-        // // piece.setPiecePosition(400, 300);
-        // // piece.setImagePosition(400, 300);
-        // piece.setBindedPiecePosition(400, 300);
-      }
-      ARR_MOVE_PIECES.push(ARR_MOVE_PIECES_LINE);
-      ARR_MOVE_PIECES_LINE = [];
-    }
-
-    return ARR_MOVE_PIECES;
-  }
-
-  public convertTo1D(pieces: Piece[][]): Piece[] {
-    const newArr: Piece[] = [];
-    for (let j = 0; j < this.numVerticalPieces; j++) {
-      for (let i = 0; i < this.numHorizontalPieces; i++) {
-        newArr.push(pieces[j][i]);
+        const pieceObj = new Piece(
+          this.scene,
+          piece,
+          pieceImage,
+          this.pieceScaleValue,
+          { lineIndex: j, columnIndex: i }
+        );
+        pieceObj.scaleDownPiece(true);
+        arrRefPieces.push(pieceObj);
       }
     }
-    return newArr;
-  }
-
-  public getPiecesRightLockCoors(): PieceCoor[] {
-    return this.piecesRightLockCoors;
+    return arrRefPieces;
   }
 }

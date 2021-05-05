@@ -8,7 +8,7 @@ export class BootScene extends Phaser.Scene {
   // private timeToComplete: number | null = 120;
   private piecesSize: number | null;
   private puzzleImage: number | null;
-  private piecePositionHelper: boolean = true;
+  private piecePositionHelper: boolean = false;
   private backgroundPuzzleImage: boolean = true;
   private movePiecesFreely: boolean = true;
 

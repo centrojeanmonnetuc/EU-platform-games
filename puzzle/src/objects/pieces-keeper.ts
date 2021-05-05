@@ -1,7 +1,7 @@
 import { CONST } from "../const/const";
 import { PiecesBoard, PieceCoor } from "../interfaces/utils.interface";
 import { getRndInteger } from "../utils/puzzle";
-import { Piece } from "./piece";
+import { Piece } from "./piece-new";
 
 export class PiecesKeeper {
   private scene: Phaser.Scene;
@@ -50,12 +50,13 @@ export class PiecesKeeper {
         this.verifyOverlap(rndPos, tempCoordsArr)
       );
 
-      tempCoordsArr.push({
+      const coordsObj = {
         x: rndPos.x,
         y: rndPos.y,
-      });
-      this.pieces[i].setBindedPiecePosition(rndPos.x, rndPos.y);
-      this.pieces[i].setPieceInitCoors({ x: rndPos.x, y: rndPos.y });
+      };
+      tempCoordsArr.push(coordsObj);
+      this.pieces[i].setInitCoords(coordsObj);
+      this.pieces[i].setPiecePosition(coordsObj);
     }
   }
 

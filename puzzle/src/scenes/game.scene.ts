@@ -5,7 +5,7 @@ import { Puzzle } from "../objects/puzzle-new";
 import { checkLockPosition } from "../utils/puzzle";
 import { PiecesKeeper } from "../objects/pieces-keeper";
 import { PieceCoor, PiecesBoard } from "../interfaces/utils.interface";
-import { Piece } from "../objects/piece";
+import { Piece } from "../objects/piece-new";
 import { Clock } from "../objects/clock";
 import { Background } from "../objects/background";
 import { PiecesGenerator } from "../objects/pieces-generator";
@@ -130,8 +130,7 @@ export class GameScene extends Phaser.Scene {
       [-1, 0, 1]
     );
 
-    console.log(this.scene.scene.textures.list);
-
+    // console.log(this.scene.scene.textures.list);
     // console.log(this.numHorizontalPieces);
     // console.log(this.numVerticalPieces);
     // console.log(this.pieceW);
@@ -156,78 +155,69 @@ export class GameScene extends Phaser.Scene {
     );
     const piecesArr = puzzle.generateOutsidePieces(puzzleGrid.getImageAux());
 
-    // const container1: PiecesBoard = {
-    //   x: this.pieceH * this.outsidePiecesScale,
-    //   y: this.gameHeight * 0.1,
-    //   width:
-    //     puzzleGrid.getImage().getBounds().left -
-    //     this.pieceH * this.outsidePiecesScale,
-    //   height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
-    // };
-    // const container2: PiecesBoard = {
-    //   x:
-    //     puzzleGrid.getImage().getBounds().right +
-    //     this.pieceH * this.outsidePiecesScale,
-    //   y: this.gameHeight * 0.1,
-    //   width: this.gameWidth - this.pieceH * this.outsidePiecesScale,
-    //   height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
-    // };
-    // new PiecesKeeper(
-    //   this,
-    //   this.pieceW * 0.4,
-    //   this.pieceH * 0.4,
-    //   container1,
-    //   container2,
-    //   puzzle.convertTo1D(piecesArr)
-    // );
-
-    // // set pieces positions outside the puzzle board
-
-    // this.input.on("dragstart", (pointer: any, gameObject: any) =>
-    //   this.dragHandlerStart(pointer, gameObject, piecesArr)
-    // );
-    // this.input.on(
-    //   "drag",
-    //   (pointer: any, gameObject: any, dragX: number, dragY: number) =>
-    //     this.dragHandler(gameObject, dragX, dragY, piecesArr)
-    // );
-    // this.input.on("dragend", (pointer: any, gameObject: any) =>
-    //   this.dragEndHandler(pointer, gameObject, piecesArr)
-    // );
-
-    // /**
-    //  * SOUND
-    //  *
-    //  */
-    // this.select_sound = this.sound.add("select");
-    // this.drop_sound = this.sound.add("drop_piece");
-    // this.right_sound = this.sound.add("right_place");
-    // this.complete_sound = this.sound.add("complete_puzzle");
-    // // // text
-    // let updatedText = "";
-    // if (this.timeToComplete) {
-    //   // this.displayText = "Tempo para acabar o jogo\n";
-    //   CONST.TIME = this.timeToComplete;
-    //   updatedText = `${CONST.TIME}`;
-    //   // timer
-    //   this.timedEvent = this.time.delayedCall(
-    //     this.timeToComplete * 1000,
-    //     this.onEventTimeOver,
-    //     [],
-    //     this
-    //   );
-
-    //   this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
-    //   this.clock.updateTime(updatedText);
-    // }
-
-    this.input.on(
-      "pointerdown",
-      function (pointer: any) {
-        console.log(pointer.x, pointer.y);
-      },
-      this
+    // set pieces positions outside the puzzle board
+    const container1: PiecesBoard = {
+      x: this.pieceH * this.outsidePiecesScale,
+      y: this.gameHeight * 0.1,
+      width:
+        puzzleGrid.getImage().getBounds().left -
+        this.pieceH * this.outsidePiecesScale,
+      height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
+    };
+    const container2: PiecesBoard = {
+      x:
+        puzzleGrid.getImage().getBounds().right +
+        this.pieceH * this.outsidePiecesScale,
+      y: this.gameHeight * 0.1,
+      width: this.gameWidth - this.pieceH * this.outsidePiecesScale,
+      height: this.gameHeight - this.pieceH * this.outsidePiecesScale,
+    };
+    new PiecesKeeper(
+      this,
+      this.pieceW * 0.4,
+      this.pieceH * 0.4,
+      container1,
+      container2,
+      piecesArr
     );
+
+    this.input.on("dragstart", (pointer: any, gameObject: any) =>
+      this.dragHandlerStart(pointer, gameObject, piecesArr)
+    );
+    this.input.on(
+      "drag",
+      (pointer: any, gameObject: any, dragX: number, dragY: number) =>
+        this.dragHandler(gameObject, dragX, dragY, piecesArr)
+    );
+    this.input.on("dragend", (pointer: any, gameObject: any) =>
+      this.dragEndHandler(pointer, gameObject, piecesArr)
+    );
+
+    /**
+     * SOUND
+     *
+     */
+    this.select_sound = this.sound.add("select");
+    this.drop_sound = this.sound.add("drop_piece");
+    this.right_sound = this.sound.add("right_place");
+    this.complete_sound = this.sound.add("complete_puzzle");
+    // // text
+    let updatedText = "";
+    if (this.timeToComplete) {
+      // this.displayText = "Tempo para acabar o jogo\n";
+      CONST.TIME = this.timeToComplete;
+      updatedText = `${CONST.TIME}`;
+      // timer
+      this.timedEvent = this.time.delayedCall(
+        this.timeToComplete * 1000,
+        this.onEventTimeOver,
+        [],
+        this
+      );
+
+      this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
+      this.clock.updateTime(updatedText);
+    }
   }
 
   update(): void {
@@ -238,43 +228,39 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private dragHandlerStart(pointer: any, gameObject: any, arr: Piece[][]) {
-    // gameObject.setDepth(++this.depthCounter);
-    // this.select_sound.play();
-
-    const indexL = gameObject.getData("piece").l;
-    const indexC = gameObject.getData("piece").c;
-    const pieceObj = arr[indexL][indexC];
-    pieceObj.resizeBindedPiece(this.pieceW, this.pieceH, this.pieceRadius, 1);
-    // pieceObj.setBindedPiecePosition(300, 300);
-    pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
-    pieceObj.setPieceDepth(++this.depthCounter);
+  private dragHandlerStart(pointer: any, gameObject: any, arr: Piece[]) {
+    gameObject.setDepth(++this.depthCounter);
+    this.select_sound.play();
+    const line = gameObject.getData("line");
+    const col = gameObject.getData("col");
+    const pieceObj = arr[line * this.numHorizontalPieces + col];
+    pieceObj.scaleDownPiece(false);
   }
 
-  private dragHandler(gameObject: any, dragX: any, dragY: any, arr: Piece[][]) {
-    const indexL = gameObject.getData("piece").l;
-    const indexC = gameObject.getData("piece").c;
-    const pieceObj = arr[indexL][indexC];
+  private dragHandler(gameObject: any, dragX: any, dragY: any, arr: Piece[]) {
+    const line = gameObject.getData("line");
+    const col = gameObject.getData("col");
+    const pieceObj = arr[line * this.numHorizontalPieces + col];
 
-    pieceObj.setBindedPiecePosition(dragX, dragY);
+    pieceObj.setPiecePosition({ x: dragX, y: dragY });
   }
 
-  private dragEndHandler(pointer: any, gameObject: any, arr: Piece[][]) {
-    const indexL = gameObject.getData("piece").l;
-    const indexC = gameObject.getData("piece").c;
-    const pieceObj = arr[indexL][indexC];
+  private dragEndHandler(pointer: any, gameObject: any, arr: Piece[]) {
+    const line = gameObject.getData("line");
+    const col = gameObject.getData("col");
+    const pieceObj: Piece = arr[line * this.numHorizontalPieces + col];
 
     const rightPosObj = this.piecesRightCoors[
-      this.numHorizontalPieces * indexL + indexC
+      this.numHorizontalPieces * line + col
     ];
 
     const pieceObjCoor: PieceCoor = {
-      x: pieceObj.getImageObj().getBounds().centerX,
-      y: pieceObj.getImageObj().getBounds().centerY,
+      x: pieceObj.getPieceImage().getBounds().centerX,
+      y: pieceObj.getPieceImage().getBounds().centerY,
     };
     // check if its right position
     if (this.verifyPieceLock(rightPosObj, pieceObjCoor)) {
-      pieceObj.setBindedPiecePosition(rightPosObj.x, rightPosObj.y);
+      pieceObj.setPiecePosition({ x: rightPosObj.x, y: rightPosObj.y });
       pieceObj.setPieceDepth(1);
       // disable piece draggablility
       this.input.setDraggable(gameObject, false);
@@ -300,22 +286,16 @@ export class GameScene extends Phaser.Scene {
         this.right_sound.play();
       }
     } else {
-      pieceObj.resizeBindedPiece(
-        this.pieceW * this.outsidePiecesScale,
-        this.pieceH * this.outsidePiecesScale,
-        this.pieceRadius * this.outsidePiecesScale,
-        this.outsidePiecesScale
-      );
-      // pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+      pieceObj.scaleDownPiece(true);
       if (!this.movePiecesFreely) {
-        // piece goes user last mouse position
-        pieceObj.setBindedPiecePosition(
-          pieceObj.getPieceInitCoors().x,
-          pieceObj.getPieceInitCoors().y
-        );
+        // piece goes to user last mouse position
+        pieceObj.setPiecePosition({
+          x: pieceObj.getInitCoords().x,
+          y: pieceObj.getInitCoords().y,
+        });
       } else {
         // piece goes to default position
-        pieceObj.setBindedPiecePosition(pointer.x, pointer.y);
+        pieceObj.setPiecePosition({ x: pointer.x, y: pointer.y });
       }
       this.drop_sound.play();
     }

@@ -387,7 +387,7 @@ export class PiecesGenerator {
     path.draw(this.pieceGraphic);
 
     const hitAreaPoints = path.getPoints();
-    this.pieceGraphic.lineStyle(this.lineWidth, 0x696969, 5);
+    this.pieceGraphic.lineStyle(this.lineWidth, 0x000000, 1);
     this.pieceGraphic.fillStyle(this.fillColor, 1);
     this.pieceGraphic.fillPoints(hitAreaPoints);
 
