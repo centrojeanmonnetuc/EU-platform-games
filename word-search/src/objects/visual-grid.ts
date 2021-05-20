@@ -124,6 +124,10 @@ export class VisualGrid {
     //if (this.cell_size > 50) this.cell_size = 50;
   }
 
+  public getCellSize(): number {
+    return this.cell_size;
+  }
+
   public getCells(): Cell[] {
     return this.cells;
   }
@@ -134,5 +138,9 @@ export class VisualGrid {
 
   public setPosition(x: number, y: number): void {
     this.grid_container.setPosition(x, y);
+  }
+
+  public getGridBounds(): any {
+    return this.grid_container.getBounds();
   }
 }

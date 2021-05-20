@@ -20,7 +20,7 @@ export class DisplayText {
       origin: { x: 0.5, y: 0.5 },
       style: {
         fontFamily: "Arial",
-        fontSize: fontSize,
+        fontSize: fontSize / 2,
         color: color,
         wordWrap: {
           width: wrapW,

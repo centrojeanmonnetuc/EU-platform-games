@@ -55,6 +55,7 @@ export class Select {
   ): void {
     this.scene.input.on("pointerdown", (pointer: any, gameObject: any) => {
       // verify if its inside
+      if (!gameObject[0]) return;
 
       const cellBounds = gameObject[0].getBounds();
 
@@ -66,7 +67,11 @@ export class Select {
       this.firstObj = this.findClickedChar(cells, gameObject[0]);
     });
 
-    this.scene.input.on("pointermove", (pointer: any) => {
+    this.scene.input.on("pointermove", (pointer: any, gameObject: any) => {
+      if (!gameObject[0]) {
+        selection.clear();
+        return;
+      }
       if (!pointer.isDown) return;
       // limit inside grid
       line.x2 = pointer.x;
@@ -78,6 +83,11 @@ export class Select {
     });
 
     this.scene.input.on("pointerup", (pointer: any, gameObject: any) => {
+      if (!gameObject[0]) {
+        selection.clear();
+        return;
+      }
+
       this.lastObj = this.findClickedChar(cells, gameObject[0]);
 
       selection.clear();
@@ -86,11 +96,16 @@ export class Select {
         this.firstObj,
         this.lastObj
       );
-      console.log(guess);
-      // verify word
-      const guessed_word = this.getWord(guess, populatedGrid);
-      console.log(guessed_word);
-      this.emitter.emit("guessedWord", { gridInfo: guess, word: guessed_word });
+      // if there's a word
+      if (guess.length > 0) {
+        // verify word
+        const guessed_word = this.getWord(guess, populatedGrid);
+        console.log(guessed_word);
+        this.emitter.emit("guessedWord", {
+          gridInfo: guess,
+          word: guessed_word,
+        });
+      }
     });
   }
 

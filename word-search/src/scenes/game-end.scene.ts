@@ -1,10 +1,4 @@
 import { Menu } from "../objects/menu";
-import { DisplayText } from "../objects/text";
-import {
-  UserAnswers,
-  UserRightWrongAnswers,
-} from "../interfaces/utils.interface";
-import { CONST } from "../const/const";
 
 export class GameEndScene extends Phaser.Scene {
   private gameHeight: number;
@@ -16,9 +10,6 @@ export class GameEndScene extends Phaser.Scene {
   private circle: Phaser.GameObjects.Graphics;
   private btn: Phaser.GameObjects.Graphics;
 
-  // event
-  private emitter: Phaser.Events.EventEmitter;
-
   constructor() {
     super({
       key: "GameEndScene",
@@ -28,22 +19,19 @@ export class GameEndScene extends Phaser.Scene {
   init(data: any): void {
     this.gameWidth = data.width;
     this.gameHeight = data.height;
-    this.emitter = data.emitter;
+    this.win = data.win;
   }
 
   create(): void {
     this.modal = this.add
-      .rectangle(0, 0, this.gameWidth, this.gameHeight, 0x000000, 0.95)
+      .rectangle(0, 0, this.gameWidth, this.gameHeight, 0x000000, 0.6)
       .setOrigin(0);
-    const menuWidth = this.gameWidth * 0.8;
-    const menuHeight = this.gameHeight * 0.45;
-    const menuPosX = this.gameWidth / 2 - menuWidth / 2;
-    const offsetShadow = menuWidth * 0.015;
 
-    const radius = menuHeight / 5;
-    const STAR_SCALE = 0.25;
-    const circleCenterY = radius * 1.2;
-    const menuPosY = radius * 2.5;
+    const menuWidth = this.gameWidth * 0.5;
+    const menuHeight = this.gameHeight * 0.5;
+    const menuPosX = this.gameWidth / 2 - menuWidth / 2;
+    const menuPosY = this.gameHeight / 2 - menuHeight / 2;
+    const offsetShadow = menuWidth * 0.015;
 
     this.menu = new Menu(
       this,
@@ -54,7 +42,12 @@ export class GameEndScene extends Phaser.Scene {
       offsetShadow
     );
 
-    let menssage = "Resumo do jogo";
+    let menssage = "";
+    if (this.win) {
+      menssage = "Parabéns, ganhaste!";
+    } else {
+      menssage = "Não conseguiste, tenta outra vez!";
+    }
     let displayText = this.add.text(0, 0, menssage, {
       fontFamily: "Arial",
       fontSize: 32,
@@ -62,130 +55,16 @@ export class GameEndScene extends Phaser.Scene {
       align: "center",
     });
 
-    this.EUCircle(circleCenterY, radius, displayText, STAR_SCALE);
+    displayText
+      .setPosition(this.gameWidth / 2, menuPosY + displayText.height * 2)
+      .setOrigin(0.5);
 
-    this.answerInfo(this.gameWidth / 2, menuPosY, 0.4);
-
-    // this.backBtn(menuPosY, menuWidth, menuHeight);
-
-    const reload = () => {
-      window.location.reload();
-    };
-    const playAgainBtn = this.button(
+    const STAR_SCALE = 0.25;
+    var circle = new Phaser.Geom.Circle(
       this.gameWidth / 2,
-      menuHeight * 1.5,
-      "Jogar novamente",
-      32,
-      40,
-      reload
+      menuPosY + menuHeight / 2.2,
+      (menuHeight - menuPosY) / 2.1
     );
-  }
-
-  private countRightAnswers(arr: UserAnswers[]): UserRightWrongAnswers {
-    console.log(arr);
-    let right = 0;
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i].userIndex === arr[i].rightIndex) {
-        right++;
-      }
-    }
-
-    return {
-      right: right,
-      wrong: Math.abs(right - arr.length),
-    };
-  }
-
-  private answerInfo(centerX: number, posY: number, scale: number): void {
-    const wrong = this.add.image(centerX, posY, "wrong");
-    const right = this.add.image(centerX, posY, "correct");
-    const centerOffsetX = right.width * scale * 1.5;
-    const centerOffsetY = right.height * scale + posY;
-    wrong.setScale(scale).setPosition(centerX - centerOffsetX, centerOffsetY);
-    right.setScale(scale).setPosition(centerX + centerOffsetX, centerOffsetY);
-    const userInfo: UserRightWrongAnswers = this.countRightAnswers(
-      CONST.USER_ANSWERS
-    );
-
-    const wrongInfo = new DisplayText(
-      this,
-      centerX - centerOffsetX,
-      wrong.getBounds().bottom + wrong.getBounds().height * 1.2,
-      `${userInfo.wrong}`,
-      wrong.width,
-      82,
-      "#ffffff"
-    );
-    const rightInfo = new DisplayText(
-      this,
-      centerX + centerOffsetX,
-      wrong.getBounds().bottom + wrong.getBounds().height * 1.2,
-      `${userInfo.right}`,
-      wrong.width,
-      82,
-      "#ffffff"
-    );
-
-    const emitEvent = () => {
-      this.emitter.emit("reviewGame");
-      this.scene.stop("GameEndScene");
-    };
-    const reviewBtn = this.button(
-      this.gameWidth / 2,
-      rightInfo.getText().getBounds().bottom +
-        rightInfo.getText().getBounds().height,
-      "Rever respostas dadas",
-      32,
-      20,
-      emitEvent
-    );
-  }
-
-  private button(
-    posX: number,
-    posY: number,
-    text: string,
-    size: number,
-    margin: number,
-    func: any
-  ): void {
-    this.btn = this.add.graphics();
-    this.btn.fillStyle(0xffcc00, 1);
-    const textObj = new DisplayText(
-      this,
-      posX,
-      posY,
-      text,
-      1000,
-      size,
-      "#0000aa"
-    );
-
-    const textBounds = textObj.getText().getBounds();
-    const btnPosX = textBounds.left - margin;
-    const btnPosY = textBounds.top - margin;
-    const btnWidth = textBounds.width + 2 * margin;
-    const btnHeight = textBounds.height + 2 * margin;
-    this.btn.fillRoundedRect(btnPosX, btnPosY, btnWidth, btnHeight, margin);
-
-    const shape = new Phaser.Geom.Rectangle(
-      btnPosX,
-      btnPosY,
-      btnWidth,
-      btnHeight
-    );
-    this.btn.setInteractive(shape, Phaser.Geom.Rectangle.Contains);
-    this.btn.on("pointerdown", func);
-  }
-
-  private EUCircle(
-    centerY: number,
-    radius: number,
-    displayText: Phaser.GameObjects.Text,
-    scale: number
-  ): void {
-    var circle = new Phaser.Geom.Circle(this.gameWidth / 2, centerY, radius);
-    displayText.setPosition(this.gameWidth / 2, centerY).setOrigin(0.5);
 
     var points = circle.getPoints(12);
     let j = 0;
@@ -215,13 +94,47 @@ export class GameEndScene extends Phaser.Scene {
 
       this.tweens.add({
         targets: image,
-        scaleX: scale / 2,
-        scaleY: scale / 1.8,
+        scaleX: STAR_SCALE / 1.6,
+        scaleY: STAR_SCALE / 1.6,
         ease: "Sine.easeInOut",
         duration: 1000,
         repeat: -1,
         yoyo: true,
       });
     }
+
+    this.btn = this.add.graphics();
+
+    this.btn.fillStyle(0xffff00, 1);
+
+    const btnWidth = menuWidth / 2;
+    const btnHeight = menuHeight / 8;
+    const btnPosX = this.gameWidth / 2 - menuWidth / 4;
+    const btnPosY = menuPosY + menuHeight * 0.8;
+
+    //  32px radius on the corners
+    this.btn.fillRoundedRect(btnPosX, btnPosY, btnWidth, btnHeight, 24);
+
+    let backText = this.add.text(0, 0, "Jogar novamente", {
+      fontFamily: "Arial",
+      fontSize: 32,
+      color: "#0000aa",
+      align: "center",
+    });
+
+    backText
+      .setPosition(this.gameWidth / 2, btnPosY + displayText.height)
+      .setOrigin(0.5);
+
+    var shape = new Phaser.Geom.Rectangle(
+      btnPosX,
+      btnPosY,
+      btnWidth,
+      btnHeight
+    );
+    this.btn.setInteractive(shape, Phaser.Geom.Rectangle.Contains);
+    this.btn.on("pointerdown", () => {
+      window.location.reload();
+    });
   }
 }

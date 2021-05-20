@@ -2,6 +2,7 @@ import { scaleImageToFitFrame } from "../utils/resizeImage";
 
 export class Background {
   private scene: Phaser.Scene;
+  private backgroundImage: Phaser.GameObjects.Image;
 
   constructor(
     scene: Phaser.Scene,
@@ -11,16 +12,26 @@ export class Background {
   ) {
     this.scene = scene;
 
-    let bg = this.scene.add.image(0, 0, image);
-    this.fitImage(bg, gameWidth, gameHeight);
+    this.backgroundImage = this.scene.add.image(0, 0, image);
+    this.backgroundImage = this.fitImage(
+      this.backgroundImage,
+      gameWidth,
+      gameHeight
+    );
   }
 
   private fitImage(
     image: Phaser.GameObjects.Image,
     width: number,
     height: number
-  ): void {
-    image = scaleImageToFitFrame(width * 2, height, image);
+  ): Phaser.GameObjects.Image {
+    image = scaleImageToFitFrame(width * 1.3, height, image);
     image.setOrigin(0);
+
+    return image;
+  }
+
+  public setAlpha(val: number): void {
+    this.backgroundImage.setAlpha(val);
   }
 }

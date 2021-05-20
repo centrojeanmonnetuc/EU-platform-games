@@ -5,6 +5,7 @@ import {
   ObjectPosition,
 } from "../interfaces/utils.interface";
 import { Background } from "../objects/background";
+import { Clock } from "../objects/clock";
 import { Place } from "../objects/place";
 import { Populate } from "../objects/populate";
 import { Select } from "../objects/select";
@@ -36,8 +37,31 @@ export class GameScene extends Phaser.Scene {
   private cells_gap: number = 1;
   private lineColor: number = 0xffcc5c;
 
+  // side words
+  private sideWords: Words;
+  private scribeDuration: number = 1000;
+  private lineWidth: number = 8;
+  private lineAlpha: number = 0.7;
+
+  // scribe word
+
   // emitters
   private mainEmitter: Phaser.Events.EventEmitter;
+
+  /**
+   * Sounds
+   */
+  private right_guess: Phaser.Sound.BaseSound;
+  private finish_game: Phaser.Sound.BaseSound;
+  private game_over: Phaser.Sound.BaseSound;
+
+  /**
+   * Timer
+   */
+  private text: Phaser.GameObjects.Text;
+  private displayText: string;
+  private timedEvent: Phaser.Time.TimerEvent;
+  private clock: Clock;
 
   constructor() {
     super({
@@ -60,11 +84,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    // new Background(this, "bg", this.gameWidth, this.gameHeight);
+    const bg = new Background(this, "bg", this.gameWidth, this.gameHeight);
+    bg.setAlpha(0.3);
     this.mainEmitter = new Phaser.Events.EventEmitter();
 
     // upper case and join words
     this.words = this.getFormattedWords(this.words);
+
+    CONST.TOTAL_WORDS = this.words.length;
 
     const placeWords = new Place(
       this,
@@ -101,10 +128,17 @@ export class GameScene extends Phaser.Scene {
       this.side_gap,
       this.cells_gap
     );
+    // center grid
+    const gridH =
+      this.visual.getGridBounds().bottom - this.visual.getGridBounds().top;
+    const gridCenterY = this.gameHeight / 1.8 - gridH / 2;
+    this.visual.setPosition(this.side_gap, gridCenterY);
 
-    this.visual.setPosition(this.side_gap, 0);
-
-    const words = new Words(this, this.words);
+    this.sideWords = new Words(this, this.words, this.visual.getCellSize());
+    this.sideWords.setWordsPosition(
+      this.gameWidth * this.gird_w_ratio,
+      this.visual.getGridBounds().top
+    );
 
     const selection = new Select(
       this,
@@ -115,6 +149,48 @@ export class GameScene extends Phaser.Scene {
       this.mainEmitter
     );
     this.mainEmitter.on("guessedWord", this.wordInputHandler, this);
+
+    this.right_guess = this.sound.add("right_guess");
+    this.finish_game = this.sound.add("finish_game");
+    this.game_over = this.sound.add("game_over");
+
+    // // text
+    let updatedText = "";
+    if (this.timer) {
+      // this.displayText = "Tempo para acabar o jogo\n";
+      CONST.TIME = this.time_to_complete;
+      updatedText = `${CONST.TIME}`;
+      // timer
+      this.timedEvent = this.time.delayedCall(
+        this.time_to_complete * 1000,
+        this.onEventTimeOver,
+        [],
+        this
+      );
+
+      this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
+      this.clock.updateTime(updatedText);
+    }
+  }
+
+  update(): void {
+    if (this.timer && !CONST.GAME_OVER) {
+      this.clock.updateTime(
+        `${(this.time_to_complete - this.timedEvent.elapsed / 1000).toFixed(0)}`
+      );
+    }
+  }
+
+  private onEventTimeOver(): void {
+    console.log("time over");
+    CONST.GAME_OVER = true;
+    this.clock.cancelAnims();
+    this.game_over.play();
+    this.scene.launch("GameEndScene", {
+      width: this.gameWidth,
+      height: this.gameHeight,
+      win: false,
+    });
   }
 
   private wordInputHandler(data: any) {
@@ -136,6 +212,32 @@ export class GameScene extends Phaser.Scene {
         this.visual.setCellColor(c.x, c.y, this.lineColor);
       }
       // scribe word
+      this.sideWords.scribeWord(
+        data.word,
+        this.lineWidth,
+        this.lineColor,
+        this.lineAlpha,
+        this.scribeDuration
+      );
+
+      // game over
+      CONST.CURRENT_WORDS_D++;
+      console.log(CONST.CURRENT_WORDS_D);
+      console.log(CONST.TOTAL_WORDS);
+      if (CONST.CURRENT_WORDS_D === CONST.TOTAL_WORDS) {
+        this.finish_game.play();
+        CONST.GAME_OVER = true;
+        this.scene.launch("GameEndScene", {
+          width: this.gameWidth,
+          height: this.gameHeight,
+          win: true,
+        });
+        if (this.timer) {
+          this.clock.cancelAnims();
+        }
+      } else {
+        this.right_guess.play();
+      }
     } else {
       console.log(" no match");
     }

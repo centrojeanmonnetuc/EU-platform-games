@@ -3,48 +3,32 @@ import { scaleImageToFitFrame } from "../utils/resizeImage";
 
 export class Clock {
   private scene: Phaser.Scene;
+  private interval: number;
+  private timerEvent: Phaser.Time.TimerEvent;
   private clockImage: Phaser.GameObjects.Image;
   private timeContainer: Phaser.GameObjects.Container;
-
-  private posX: number;
-  private posY: number;
-  private width: number;
-  private height: number;
 
   private text: Phaser.GameObjects.Text;
   private endingColor: number = 0xff0000;
 
   // animations
-  private animClock: Phaser.Tweens.Tween | null = null;
+  private animClock: Phaser.Tweens.Tween;
 
-  constructor(
-    scene: Phaser.Scene,
-    posX: number,
-    posY: number,
-    width: number,
-    height: number
-  ) {
+  constructor(scene: Phaser.Scene, barWidth: number, barHeight: number) {
     this.scene = scene;
-    this.posX = posX;
-    this.posY = posY;
-    this.width = width;
-    this.height = height;
 
-    this.createClock();
-  }
-
-  public createClock(): void {
     this.clockImage = this.scene.add.image(0, 0, "hourglass");
     this.clockImage = scaleImageToFitFrame(
-      this.width,
-      this.height,
+      barWidth,
+      barHeight,
       this.clockImage
     );
+    // this.clockImage.setPosition(barWidth / 2, this.clockImage.y);
     this.timeContainer = this.scene.add.container();
-    this.text = this.scene.add.text(0, 16, "--", {
+    this.text = this.scene.add.text(0, 16, "100", {
       fontFamily: "Arial",
       fontSize: 64,
-      color: "#000000",
+      color: "#ffffff",
       align: "center",
     });
     this.text.setPosition(
@@ -57,21 +41,21 @@ export class Clock {
 
     const offsetX =
       this.clockImage.getBounds().left + this.text.getBounds().right;
-    this.timeContainer.setPosition(this.posX, this.posY);
+    this.timeContainer.setPosition(barWidth / 2 - offsetX / 2, barHeight);
   }
 
   public updateTime(time: string): void {
-    if (parseInt(time) === 8 && this.animClock === null) {
+    if (parseInt(time) === 12) {
       this.shakeImage();
     }
-    if (parseInt(time) <= 6) {
+    if (parseInt(time) <= 10) {
       this.text.setTint(this.endingColor);
     }
     this.text.setText(time);
   }
 
   private shakeImage(): void {
-    this.animClock = this.scene.tweens.add({
+    this.scene.tweens.add({
       targets: this.clockImage,
       duration: 500,
       ease: "Sine.easeInOut",
@@ -84,15 +68,10 @@ export class Clock {
   }
 
   public cancelAnims(): void {
-    if (this.animClock !== null) {
-      this.animClock.stop();
-      this.animClock = null;
-    }
+    this.scene.tweens.destroy();
   }
 
-  public clearClock(): void {
-    this.clockImage.destroy();
-    this.text.destroy();
-    this.timeContainer.destroy();
-  }
+  // public getTimerEvent(): Phaser.Time.TimerEvent {
+  //   return this.timerEvent;
+  // }
 }
