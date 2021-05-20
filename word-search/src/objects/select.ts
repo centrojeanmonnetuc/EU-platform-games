@@ -1,8 +1,4 @@
-import {
-  ObjectPosition,
-  SelectInfo,
-  GridPos,
-} from "../interfaces/utils.interface";
+import { ObjectPosition, SelectInfo } from "../interfaces/utils.interface";
 import { Cell } from "../objects/cell";
 
 export class Select {
@@ -12,20 +8,27 @@ export class Select {
   // select
   private selection: Phaser.GameObjects.Graphics;
   private line: Phaser.Geom.Line;
-  private lineColor: number = 0xffcc5c;
+  private lineColor: number;
 
   // objects selected
   private firstObj: Cell;
   private lastObj: Cell;
 
+  // event
+  private emitter: Phaser.Events.EventEmitter;
+
   constructor(
     scene: Phaser.Scene,
     populatedGrid: string[][],
     cells: Cell[],
-    num_hor_cells: number
+    lineColor: number,
+    num_hor_cells: number,
+    emitter: Phaser.Events.EventEmitter
   ) {
     this.scene = scene;
+    this.lineColor = lineColor;
     this.num_hor_cells = num_hor_cells;
+    this.emitter = emitter;
 
     this.selection = this.scene.add.graphics();
     this.selection.setDepth(2);
@@ -78,9 +81,16 @@ export class Select {
       this.lastObj = this.findClickedChar(cells, gameObject[0]);
 
       selection.clear();
-      this.discoverWord(this.firstObj, this.lastObj, populatedGrid);
 
+      const guess: ObjectPosition[] = this.discoverUserInput(
+        this.firstObj,
+        this.lastObj
+      );
+      console.log(guess);
       // verify word
+      const guessed_word = this.getWord(guess, populatedGrid);
+      console.log(guessed_word);
+      this.emitter.emit("guessedWord", { gridInfo: guess, word: guessed_word });
     });
   }
 
@@ -93,35 +103,15 @@ export class Select {
     return null;
   }
 
-  private discoverWord(
-    firstObj: Cell,
-    lastObj: Cell,
-    grid: string[][]
-  ): string {
-    var guess = {
-      word: "",
-      direction: "",
-      first_cell_pos: "",
-      last_cell_pos: "",
-      cells: [],
-    };
+  private getWord(arr: ObjectPosition[], grid: string[][]): string {
+    let word = "";
+    for (const pos of arr) {
+      word += grid[pos.y][pos.x];
+    }
+    return word;
+  }
 
-    console.log(firstObj);
-    console.log(lastObj);
-    const firstCellBounds = firstObj.getCellImg().getBounds();
-    const lastCellBounds = lastObj.getCellImg().getBounds();
-
-    // corresponds to the grid witdth
-    // offset to skip a column in a 1-D array
-    let cell_offset = this.num_hor_cells;
-
-    // to work for reverse words
-    // if (guess.frist_cell_pos > guess.last_cell_pos) {
-    //   let temp_cell_pos = guess.last_cell_pos;
-    //   guess.last_cell_pos = guess.frist_cell_pos;
-    //   guess.frist_cell_pos = temp_cell_pos;
-    // }
-
+  private discoverUserInput(firstObj: Cell, lastObj: Cell): ObjectPosition[] {
     const selectInfo: SelectInfo = {
       start_x: firstObj.getGridPos().x,
       start_y: firstObj.getGridPos().y,
@@ -129,6 +119,20 @@ export class Select {
       end_y: lastObj.getGridPos().y,
       selected_coors: [],
     };
+
+    // to work for reverse words
+    if (
+      selectInfo.start_x + selectInfo.start_y >
+      selectInfo.end_x + selectInfo.end_y
+    ) {
+      console.log("troca");
+      selectInfo.start_x = lastObj.getGridPos().x;
+      selectInfo.start_y = lastObj.getGridPos().y;
+
+      selectInfo.end_x = firstObj.getGridPos().x;
+      selectInfo.end_y = firstObj.getGridPos().y;
+    }
+
     // find the direction of the word
     // DOWN
     if (selectInfo.start_x == selectInfo.end_x) {
@@ -147,7 +151,6 @@ export class Select {
       selectInfo.start_x - selectInfo.start_y ==
       selectInfo.end_x - selectInfo.end_y
     ) {
-      console.log("rd");
       let counter = selectInfo.start_x;
       for (let i = selectInfo.start_y; i <= selectInfo.end_y; i++) {
         selectInfo.selected_coors.push({
@@ -161,7 +164,6 @@ export class Select {
       selectInfo.start_x + selectInfo.start_y ==
       selectInfo.end_x + selectInfo.end_y
     ) {
-      console.log("ld");
       let counter = selectInfo.start_x;
       for (let i = selectInfo.start_y; i <= selectInfo.end_y; i++) {
         selectInfo.selected_coors.push({
@@ -172,8 +174,6 @@ export class Select {
     } else {
       console.log("direction not found");
     }
-    console.log(selectInfo.selected_coors);
-    console.log("Word Guess: " + guess.word);
-    return guess.word;
+    return selectInfo.selected_coors;
   }
 }

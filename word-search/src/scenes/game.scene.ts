@@ -1,10 +1,15 @@
 import { CONST } from "../const/const";
-import { Directions, Word } from "../interfaces/utils.interface";
+import {
+  Directions,
+  Word,
+  ObjectPosition,
+} from "../interfaces/utils.interface";
 import { Background } from "../objects/background";
 import { Place } from "../objects/place";
 import { Populate } from "../objects/populate";
 import { Select } from "../objects/select";
 import { VisualGrid } from "../objects/visual-grid";
+import { Words } from "../objects/words";
 
 export class GameScene extends Phaser.Scene {
   // field and game setting
@@ -24,10 +29,15 @@ export class GameScene extends Phaser.Scene {
   private empty_char: string = "*";
 
   // visual grid
-  private gird_w_ratio = 0.7;
-  private gird_h_ratio = 0.8;
-  private side_gap = 50;
-  private cells_gap = 1;
+  private visual: VisualGrid;
+  private gird_w_ratio: number = 0.7;
+  private gird_h_ratio: number = 0.8;
+  private side_gap: number = 50;
+  private cells_gap: number = 1;
+  private lineColor: number = 0xffcc5c;
+
+  // emitters
+  private mainEmitter: Phaser.Events.EventEmitter;
 
   constructor() {
     super({
@@ -51,6 +61,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     // new Background(this, "bg", this.gameWidth, this.gameHeight);
+    this.mainEmitter = new Phaser.Events.EventEmitter();
 
     // upper case and join words
     this.words = this.getFormattedWords(this.words);
@@ -80,7 +91,7 @@ export class GameScene extends Phaser.Scene {
       this.num_vertical_cells
     );
 
-    const visual = new VisualGrid(
+    this.visual = new VisualGrid(
       this,
       populate.getPopulatedGrid(),
       this.num_horizontal_cells,
@@ -91,14 +102,43 @@ export class GameScene extends Phaser.Scene {
       this.cells_gap
     );
 
-    // visual.setGridContainerPosition(0, 0);
+    this.visual.setPosition(this.side_gap, 0);
+
+    const words = new Words(this, this.words);
 
     const selection = new Select(
       this,
       populate.getPopulatedGrid(),
-      visual.getCells(),
-      this.num_horizontal_cells
+      this.visual.getCells(),
+      this.lineColor,
+      this.num_horizontal_cells,
+      this.mainEmitter
     );
+    this.mainEmitter.on("guessedWord", this.wordInputHandler, this);
+  }
+
+  private wordInputHandler(data: any) {
+    console.log(data);
+    let match = false;
+    for (const w of this.words) {
+      if (w.word === data.word) {
+        // match
+        match = true;
+        break;
+      }
+    }
+
+    if (match) {
+      console.log("match");
+      console.log(data.gridInfo);
+      // color cells
+      for (const c of data.gridInfo) {
+        this.visual.setCellColor(c.x, c.y, this.lineColor);
+      }
+      // scribe word
+    } else {
+      console.log(" no match");
+    }
   }
 
   private getFormattedWords = (arr: Word[]) => {

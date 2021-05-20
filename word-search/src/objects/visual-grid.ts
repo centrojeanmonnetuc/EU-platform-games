@@ -7,6 +7,7 @@ export class VisualGrid {
 
   private cell_size: number;
   private grid_container: Phaser.GameObjects.Container;
+  private num_hor_cells: number;
 
   constructor(
     scene: Phaser.Scene,
@@ -19,6 +20,7 @@ export class VisualGrid {
     cells_gap: number
   ) {
     this.scene = scene;
+    this.num_hor_cells = num_hor_cells;
 
     this.setCellSize(
       num_hor_cells,
@@ -100,29 +102,6 @@ export class VisualGrid {
       }
       grid_h_counter += this.cell_size + cells_gap;
     }
-    // grid_container.setPosition(
-    //   s_width / 2 - grid_w_counter / 2,
-    //   bar_size_height + main_puzzle_height / 2 - grid_h_counter / 2
-    // );
-    // grid_container.setData("container_w", grid_w_counter);
-    // grid_container.setData("container_h", grid_h_counter);
-
-    // SELECTION = this.add.graphics();
-    // var line = new Phaser.Geom.Line();
-
-    // var word_strikethrough = this.add.graphics({
-    //   lineStyle: { width: 3, color: yellow, alpha: 0.6 },
-    // });
-
-    // this.input.on("pointerdown", (pointer) =>
-    //   this.lineOriginHandler(pointer, line, SELECTION, grid_container)
-    // );
-    // this.input.on("pointermove", (pointer) =>
-    //   this.lineMovingHandler(pointer, SELECTION, line, grid_container)
-    // );
-    // this.input.on("pointerup", () =>
-    //   this.lineEndHandler(SELECTION, grid_container, word_strikethrough)
-    // );
   }
 
   private setCellSize(
@@ -147,5 +126,13 @@ export class VisualGrid {
 
   public getCells(): Cell[] {
     return this.cells;
+  }
+
+  public setCellColor(x: number, y: number, color: number): void {
+    this.cells[x + y * this.num_hor_cells].setColor(color);
+  }
+
+  public setPosition(x: number, y: number): void {
+    this.grid_container.setPosition(x, y);
   }
 }

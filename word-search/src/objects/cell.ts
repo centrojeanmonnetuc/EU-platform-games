@@ -37,4 +37,8 @@ export class Cell {
   public getGridPos(): ObjectPosition {
     return this.gridPos;
   }
+
+  public setColor(color: number): void {
+    this.cell.setTint(color);
+  }
 }
