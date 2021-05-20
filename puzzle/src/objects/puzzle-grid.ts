@@ -82,7 +82,7 @@ export class PuzzleGrid {
     shadow.setDepth(-3);
 
     shadow.beginPath();
-    shadow.fillStyle(0xffffff, 1);
+    shadow.fillStyle(0xffffff, 0.85);
     shadow.fillRoundedRect(
       imgBounds.left,
       imgBounds.top,

@@ -1,6 +1,6 @@
 import { BootScene } from "./scenes/boot-scene";
 import { GameScene } from "./scenes/game.scene";
-import { GameWinScene } from "./scenes/game-win.scene";
+import { GameEndScene } from "./scenes/game-end.scene";
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -18,5 +18,5 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     target: 30,
     forceSetTimeOut: true,
   },
-  scene: [BootScene, GameScene, GameWinScene],
+  scene: [BootScene, GameScene, GameEndScene],
 };

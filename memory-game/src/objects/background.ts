@@ -12,7 +12,7 @@ export class Background {
   ) {
     this.scene = scene;
 
-    this.backgroundImage = this.scene.add.image(0, 0, image).setDepth(-10);
+    this.backgroundImage = this.scene.add.image(0, 0, image);
     this.backgroundImage = this.fitImage(
       this.backgroundImage,
       gameWidth,
@@ -26,7 +26,9 @@ export class Background {
     height: number
   ): Phaser.GameObjects.Image {
     image = scaleImageToFitFrame(width * 1.3, height, image);
-    image.setOrigin(0);
+    image.setOrigin(0.5);
+    const imageBounds = image.getBounds();
+    image.setPosition(width / 2, height / 2);
 
     return image;
   }

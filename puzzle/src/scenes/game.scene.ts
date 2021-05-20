@@ -25,7 +25,8 @@ export class GameScene extends Phaser.Scene {
   private topBar: TopBar;
   private topBarSize: number = 0.1;
 
-  private timeToComplete: number | null;
+  private timer: boolean;
+  private timeToComplete: number;
   private piecesSize: number;
   private piecePositionHelper: boolean;
   private backgroundPuzzleImage: boolean;
@@ -71,6 +72,7 @@ export class GameScene extends Phaser.Scene {
     this.gameHeight = this.sys.canvas.height;
     this.gameWidth = this.sys.canvas.width;
 
+    this.timer = data.timer;
     this.timeToComplete = data.timeToComplete;
     this.piecesSize = data.piecesSize;
     this.puzzleImage = data.puzzleImage;
@@ -80,7 +82,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    new Background(this, "bg", this.gameWidth, this.gameHeight);
+    const bg = new Background(this, "bg", this.gameWidth, this.gameHeight);
+    bg.setAlpha(0.2);
     // this.topBar = new TopBar(this, this.gameWidth, this.gameHeight);
 
     // puzzle dimensions
@@ -203,7 +206,7 @@ export class GameScene extends Phaser.Scene {
     this.complete_sound = this.sound.add("complete_puzzle");
     // // text
     let updatedText = "";
-    if (this.timeToComplete) {
+    if (this.timer) {
       // this.displayText = "Tempo para acabar o jogo\n";
       CONST.TIME = this.timeToComplete;
       updatedText = `${CONST.TIME}`;
@@ -221,7 +224,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(): void {
-    if (this.timeToComplete && !CONST.GAME_OVER) {
+    if (this.timer && !CONST.GAME_OVER) {
       this.clock.updateTime(
         `${(this.timeToComplete - this.timedEvent.elapsed / 1000).toFixed(0)}`
       );
@@ -279,7 +282,7 @@ export class GameScene extends Phaser.Scene {
           height: this.gameHeight,
           win: true,
         });
-        if (this.timeToComplete) {
+        if (this.timer) {
           this.clock.cancelAnims();
         }
       } else {

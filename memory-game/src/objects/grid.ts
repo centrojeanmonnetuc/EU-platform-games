@@ -9,20 +9,15 @@ export class Grid {
   private numCardsH: number;
 
   private gapInBetween: number = 50;
-  private gapSide: number = 100;
+  private gapSide: number = 150;
 
   private centerGridOffsetY: number;
+  private container: Phaser.GameObjects.Container;
 
-  constructor(
-    scene: Phaser.Scene,
-    boardW: number,
-    boardH: number,
-    offsetY: number
-  ) {
+  constructor(scene: Phaser.Scene, boardW: number, boardH: number) {
     this.scene = scene;
     this.boardW = boardW - this.gapSide * 2;
-    this.centerGridOffsetY = offsetY;
-    this.boardH = boardH - this.centerGridOffsetY - this.gapSide * 2;
+    this.boardH = boardH - this.gapSide * 2;
   }
 
   public doGridCalculations(numCardsW: number, numCardsH: number): ObjectSize {
@@ -40,23 +35,32 @@ export class Grid {
   }
 
   public createGrid(cards: Card[], cardW: number, cardH: number): void {
+    this.container = this.scene.add.container();
     let counter = 0;
     for (let i = 0; i < this.numCardsH; i++) {
       for (let j = 0; j < this.numCardsW; j++) {
-        cards[counter].placeCard(
+        const x =
           j * (cardW + this.gapInBetween) +
-            this.gapSide +
-            this.gapInBetween / 2,
-          i * (cardH + this.gapInBetween) +
-            this.centerGridOffsetY +
-            this.gapSide
-        );
+          this.gapSide +
+          this.gapInBetween / 2;
+        const y = i * (cardH + this.gapInBetween) + this.gapSide;
 
+        cards[counter].placeCard(x, y);
+
+        this.container.add(cards[counter].getCard());
         counter++;
       }
     }
 
     console.log(cardH / 2);
     console.log(cards);
+  }
+
+  public getGridBounds(): any {
+    return this.container.getBounds();
+  }
+
+  public setGridPosition(x: number, y: number): void {
+    this.container.setPosition(x, y);
   }
 }

@@ -4,6 +4,8 @@ import { TopBar } from "../objects/top-bar";
 import { Grid } from "../objects/grid";
 import { CardFlipInfo } from "../interfaces/utils.interface";
 import { shuffle } from "../utils/shuffleArray";
+import { Background } from "../objects/background";
+import { Clock } from "../objects/clock";
 
 export class GameScene extends Phaser.Scene {
   // field and game setting
@@ -16,23 +18,33 @@ export class GameScene extends Phaser.Scene {
   private grid: Grid;
   private cards: Card[] = [];
 
-  private text: Phaser.GameObjects.Text;
-  private displayText: string;
-  private timedEvent: Phaser.Time.TimerEvent;
-  private matches: number = 0;
-
   // database params
   private numCardsHorizontal: number;
   private numCardsVertical: number;
   private destroyCard: boolean;
   private timeCardIsVisible: number;
   private imagesArr: string[];
-  private timeToComplete: number | null;
+  private timer: boolean;
+  private timeToComplete: number;
   private maxAttempts: number;
   private backCardId: string;
 
   // game flow
   private flippedCardsIndex: CardFlipInfo[] = [];
+
+  private matches: number = 0;
+
+  private text: Phaser.GameObjects.Text;
+  private displayText: string;
+  private timedEvent: Phaser.Time.TimerEvent;
+  private clock: Clock;
+
+  /**
+   * Sounds
+   */
+  private right_guess: Phaser.Sound.BaseSound;
+  private finish_game: Phaser.Sound.BaseSound;
+  private game_over: Phaser.Sound.BaseSound;
 
   constructor() {
     super({
@@ -47,6 +59,7 @@ export class GameScene extends Phaser.Scene {
     this.destroyCard = data.destroyCard;
     this.timeCardIsVisible = data.timeCardIsVisible;
     this.imagesArr = data.imagesArr;
+    this.timer = data.timer;
     this.timeToComplete = data.timeToComplete;
     this.maxAttempts = data.maxAttempts;
     this.backCardId = data.backCardId;
@@ -72,14 +85,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.topBar = new TopBar(this, this.gameWidth, this.gameHeight);
+    // this.topBar = new TopBar(this, this.gameWidth, this.gameHeight);
+    const bg = new Background(this, "bg", this.gameWidth, this.gameHeight);
+    bg.setAlpha(0.5);
 
-    this.grid = new Grid(
-      this,
-      this.gameWidth,
-      this.gameHeight,
-      this.topBar.getHeight()
-    );
+    this.grid = new Grid(this, this.gameWidth, this.gameHeight);
 
     // gets the card width and height
     const { width, height } = this.grid.doGridCalculations(
@@ -110,6 +120,11 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.grid.createGrid(this.cards, width, height);
+    console.log(this.grid.getGridBounds());
+    // center y
+    const gridH =
+      this.grid.getGridBounds().bottom - this.grid.getGridBounds().top;
+    this.grid.setGridPosition(0, this.gameHeight / 2 - gridH / 2);
 
     // Input
     this.input.on("gameobjectdown", this.cardDown, this);
@@ -119,11 +134,10 @@ export class GameScene extends Phaser.Scene {
 
     // text
     let updatedText = "";
-    if (this.timeToComplete) {
-      this.displayText = "Tempo para acabar o jogo\n";
+    if (this.timer) {
+      // this.displayText = "Tempo para acabar o jogo\n";
       CONST.TIME = this.timeToComplete;
-      updatedText = `${this.displayText}${CONST.TIME}`;
-
+      updatedText = `${CONST.TIME}`;
       // timer
       this.timedEvent = this.time.delayedCall(
         this.timeToComplete * 1000,
@@ -131,26 +145,53 @@ export class GameScene extends Phaser.Scene {
         [],
         this
       );
-    } else if (this.maxAttempts) {
-      this.displayText = "Tentativas restantes para acabar o jogo\n";
-      CONST.MAX_ATTEMPTS = this.maxAttempts;
-      updatedText = `${this.displayText}${CONST.MAX_ATTEMPTS}`;
+
+      this.clock = new Clock(this, this.gameWidth, this.gameHeight * 0.1);
+      this.clock.updateTime(updatedText);
     } else {
-      this.displayText = "Tentativas\n";
-      updatedText = `${this.displayText}${CONST.ATTEMPTS}`;
+      if (this.maxAttempts > 0) {
+        this.displayText = "Tentativas restantes para acabar o jogo\n";
+        CONST.MAX_ATTEMPTS = this.maxAttempts;
+        updatedText = `${this.displayText}${CONST.MAX_ATTEMPTS}`;
+      } else {
+        this.displayText = "Tentativas\n";
+        updatedText = `${this.displayText}${CONST.ATTEMPTS}`;
+      }
+      // TEXT
+      this.text = this.add.text(0, 16, updatedText, {
+        fontFamily: "Arial",
+        fontSize: 32,
+        color: "#ffffff",
+        align: "center",
+      });
+      this.text.setPosition(
+        this.gameWidth / 2 - this.text.width / 2,
+        this.text.height / 2
+      );
     }
 
-    // TEXT
-    this.text = this.add.text(0, 16, updatedText, {
-      fontFamily: "Arial",
-      fontSize: 32,
-      color: "#ffffff",
-      align: "center",
+    this.right_guess = this.sound.add("right_guess");
+    this.finish_game = this.sound.add("finish_game");
+    this.game_over = this.sound.add("game_over");
+  }
+
+  update(): void {
+    if (this.timer && !CONST.GAME_OVER) {
+      this.clock.updateTime(
+        `${(this.timeToComplete - this.timedEvent.elapsed / 1000).toFixed(0)}`
+      );
+    }
+  }
+  private onEventTimeOver(): void {
+    console.log("time over");
+    CONST.GAME_OVER = true;
+    this.clock.cancelAnims();
+    this.game_over.play();
+    this.scene.launch("GameEndScene", {
+      width: this.gameWidth,
+      height: this.gameHeight,
+      win: false,
     });
-    this.text.setPosition(
-      this.gameWidth / 2 - this.text.width / 2,
-      this.topBar.getHeight() / 2 - this.text.height / 2
-    );
   }
 
   private cardDown(pointer: any, gameobject: any, event: any): void {
@@ -204,12 +245,18 @@ export class GameScene extends Phaser.Scene {
       this.matches++;
       // count matches
       if (this.matches === this.imagesArr.length) {
+        this.finish_game.play();
         CONST.GAME_OVER = true;
-        this.scene.launch("GameWinScene", {
+        if (this.timer) {
+          this.clock.cancelAnims();
+        }
+        this.scene.launch("GameEndScene", {
           width: this.gameWidth,
           height: this.gameHeight,
           win: true,
         });
+      } else {
+        this.right_guess.play();
       }
     } else {
       // no match
@@ -221,40 +268,20 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    if (this.maxAttempts) {
-      CONST.MAX_ATTEMPTS--;
-      this.text.setText(`${this.displayText}${CONST.MAX_ATTEMPTS}`);
-      if (CONST.MAX_ATTEMPTS === 0) {
-        CONST.GAME_OVER = true;
+    if (!this.timer) {
+      if (this.maxAttempts > 0) {
+        CONST.MAX_ATTEMPTS--;
+        this.text.setText(`${this.displayText}${CONST.MAX_ATTEMPTS}`);
+        if (CONST.MAX_ATTEMPTS === 0) {
+          CONST.GAME_OVER = true;
+        }
+      } else {
+        CONST.ATTEMPTS++;
+        this.text.setText(`${this.displayText}${CONST.ATTEMPTS}`);
       }
-    } else {
-      CONST.ATTEMPTS++;
-      this.text.setText(`${this.displayText}${CONST.ATTEMPTS}`);
     }
 
     // reset array
     this.flippedCardsIndex = [];
-  }
-
-  private onEventTimeOver(): void {
-    console.log("time over");
-    CONST.GAME_OVER = true;
-
-    this.scene.launch("GameWinScene", {
-      width: this.gameWidth,
-      height: this.gameHeight,
-      win: false,
-    });
-  }
-
-  update(): void {
-    if (this.timeToComplete && !CONST.GAME_OVER) {
-      this.text.setText(
-        `${this.displayText}${(
-          this.timeToComplete -
-          this.timedEvent.elapsed / 1000
-        ).toFixed(0)}`
-      );
-    }
   }
 }

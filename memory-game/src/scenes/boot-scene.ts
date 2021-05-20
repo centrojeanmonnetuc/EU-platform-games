@@ -7,8 +7,9 @@ export class BootScene extends Phaser.Scene {
   // database params
   private destroyCard: boolean;
   private timeCardIsVisible: number = 800; // - 200ms  -> card turning time 200 ms
-  private timeToComplete: number | null;
-  private maxAttempts: number | null;
+  private timer: number;
+  private timeToComplete: number;
+  private maxAttempts: number;
   private gameId: string | null;
   private imagesArr: string[] = [];
   private backCardId: string;
@@ -31,8 +32,8 @@ export class BootScene extends Phaser.Scene {
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    const prefix = "";
-    // const prefix = "http://localhost";
+    // const prefix = "";
+    const prefix = "http://localhost";
 
     const get_game_str = prefix + "/api/games/game/" + this.gameId;
 
@@ -41,14 +42,14 @@ export class BootScene extends Phaser.Scene {
       .then((resp) => {
         console.log(resp.data);
         const config = resp.data.config;
+        this.timer = config.timer;
         this.timeToComplete = config.time_to_complete;
         this.maxAttempts = config.max_attempts;
-        this.destroyCard = config.destroyCard;
+        this.destroyCard = config.destroy_card;
         this.totalCards = config.total_images;
 
         const assets = resp.data.assets;
-        const images = assets.images;
-        const back_card_obj = images.back_card;
+        const back_card_obj = assets.back_card;
 
         this.load.on("complete", () => this.createCustom());
         this.load.image(
@@ -58,7 +59,7 @@ export class BootScene extends Phaser.Scene {
         this.backCardId = back_card_obj.id;
 
         for (let i = 0; i < this.totalCards; i++) {
-          let cardObj = assets.images.front_cards[i];
+          const cardObj = assets.front_cards[i].pair;
           this.load.image(
             cardObj.id,
             prefix + cardObj.path + cardObj.server_path
@@ -68,7 +69,13 @@ export class BootScene extends Phaser.Scene {
           this.imagesArr.push(cardObj.id);
         }
 
+        this.load.image("bg", "assets/images/bg2.jpg");
+        this.load.image("hourglass", "assets/images/hourglass.png");
         this.load.image("star", "assets/images/star.png");
+
+        this.load.audio("right_guess", "./assets/sounds/right_guess.mp3");
+        this.load.audio("finish_game", "./assets/sounds/finish_game.mp3");
+        this.load.audio("game_over", "./assets/sounds/game_over.mp3");
 
         this.load.start();
       })
@@ -83,6 +90,7 @@ export class BootScene extends Phaser.Scene {
     this.scene.start("GameScene", {
       destroyCard: this.destroyCard,
       timeCardIsVisible: this.timeCardIsVisible,
+      timer: this.timer,
       timeToComplete: this.timeToComplete,
       maxAttempts: this.maxAttempts,
       imagesArr: this.imagesArr,

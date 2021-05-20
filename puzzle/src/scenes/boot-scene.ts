@@ -4,14 +4,14 @@ export class BootScene extends Phaser.Scene {
   // general vars
 
   // database params
-  private piecesSize: number | null;
-  private puzzleImage: number | null;
+  private piecesSize: number;
+  private puzzleImage: number;
 
-  private timeToComplete: number | null;
-  // private timeToComplete: number | null = 120;
-  private backgroundPuzzleImage: boolean = true;
-  private piecePositionHelper: boolean = true;
-  private movePiecesFreely: boolean = true;
+  private timeToComplete: number;
+  private timer: boolean;
+  private backgroundPuzzleImage: boolean;
+  private piecePositionHelper: boolean;
+  private movePiecesFreely: boolean;
 
   private gameId: string | null;
 
@@ -46,18 +46,22 @@ export class BootScene extends Phaser.Scene {
         this.load.audio("right_place", "assets/sounds/right_place.mp3");
         this.load.audio("complete_puzzle", "assets/sounds/complete.mp3");
 
+        this.load.image("bg", "assets/images/bg.jpg");
         this.load.image("star", "assets/images/star.png");
         this.load.image("hourglass", "assets/images/hourglass.png");
-        this.load.image("bg", "assets/images/bg.jpg");
 
         console.log(resp.data);
 
         const config = resp.data.config;
-        // this.timeToComplete = config.time_to_complete;
         this.piecesSize = config.pieces_size;
+        this.movePiecesFreely = config.move_pieces_freely;
+        this.piecePositionHelper = config.piece_position_helper;
+        this.backgroundPuzzleImage = config.background_puzzle_image;
+        this.timer = config.timer;
+        this.timeToComplete = config.time_to_complete;
 
         const assets = resp.data.assets;
-        const puzzleImage = assets.images.final_img;
+        const puzzleImage = assets.puzzle_image;
         this.puzzleImage = puzzleImage;
 
         this.load.on("complete", () => this.createCustom());
@@ -77,6 +81,7 @@ export class BootScene extends Phaser.Scene {
 
   createCustom(): void {
     this.scene.start("GameScene", {
+      timer: this.timer,
       timeToComplete: this.timeToComplete,
       piecesSize: this.piecesSize,
       puzzleImage: this.puzzleImage,
