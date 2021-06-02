@@ -5,4 +5,5 @@ export let CONST = {
   MAX_ATTEMPTS: 0,
   TIME: 0,
   GAME_OVER: false,
+  WIN: false,
 };

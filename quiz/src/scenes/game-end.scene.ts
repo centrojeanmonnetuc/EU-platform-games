@@ -5,8 +5,11 @@ import {
   UserRightWrongAnswers,
 } from "../interfaces/utils.interface";
 import { CONST } from "../const/const";
+import axios from "axios";
 
 export class GameEndScene extends Phaser.Scene {
+  private prefix: string;
+  private gameId: string;
   private gameHeight: number;
   private gameWidth: number;
   private win: boolean;
@@ -29,6 +32,8 @@ export class GameEndScene extends Phaser.Scene {
     this.gameWidth = data.width;
     this.gameHeight = data.height;
     this.emitter = data.emitter;
+    this.prefix = data.prefix;
+    this.gameId = data.gameId;
   }
 
   create(): void {
@@ -79,6 +84,17 @@ export class GameEndScene extends Phaser.Scene {
       40,
       reload
     );
+
+    // send statistics
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics/",
+      data: {
+        gameId: this.gameId,
+        userAnswers: CONST.USER_ANSWERS,
+        userTimes: CONST.USER_TIMES.length ? CONST.USER_TIMES : null,
+      },
+    });
   }
 
   private countRightAnswers(arr: UserAnswers[]): UserRightWrongAnswers {

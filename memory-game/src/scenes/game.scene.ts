@@ -19,6 +19,7 @@ export class GameScene extends Phaser.Scene {
   private cards: Card[] = [];
 
   // database params
+  private totalCards: number;
   private numCardsHorizontal: number;
   private numCardsVertical: number;
   private destroyCard: boolean;
@@ -39,12 +40,12 @@ export class GameScene extends Phaser.Scene {
   private timedEvent: Phaser.Time.TimerEvent;
   private clock: Clock;
 
+  private freezeGame: boolean = false;
+
   /**
    * Sounds
    */
   private right_guess: Phaser.Sound.BaseSound;
-  private finish_game: Phaser.Sound.BaseSound;
-  private game_over: Phaser.Sound.BaseSound;
 
   constructor() {
     super({
@@ -56,6 +57,7 @@ export class GameScene extends Phaser.Scene {
     this.gameHeight = this.sys.canvas.height;
     this.gameWidth = this.sys.canvas.width;
 
+    this.totalCards = data.totalCards;
     this.destroyCard = data.destroyCard;
     this.timeCardIsVisible = data.timeCardIsVisible;
     this.imagesArr = data.imagesArr;
@@ -114,7 +116,8 @@ export class GameScene extends Phaser.Scene {
           height,
           number,
           this.imagesArr[number],
-          this.backCardId
+          this.backCardId,
+          this.timeCardIsVisible / 2
         )
       )
     );
@@ -124,7 +127,17 @@ export class GameScene extends Phaser.Scene {
     // center y
     const gridH =
       this.grid.getGridBounds().bottom - this.grid.getGridBounds().top;
-    this.grid.setGridPosition(0, this.gameHeight / 2 - gridH / 2);
+    let tcHeight = 2;
+    if (this.totalCards === 6) {
+      tcHeight = 1.8;
+    }
+    if (this.totalCards === 8) {
+      tcHeight = 1.7;
+    }
+    if (this.totalCards === 10) {
+      tcHeight = 1.8;
+    }
+    this.grid.setGridPosition(0, this.gameHeight / 2 - gridH / tcHeight);
 
     // Input
     this.input.on("gameobjectdown", this.cardDown, this);
@@ -171,8 +184,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.right_guess = this.sound.add("right_guess");
-    this.finish_game = this.sound.add("finish_game");
-    this.game_over = this.sound.add("game_over");
   }
 
   update(): void {
@@ -181,17 +192,23 @@ export class GameScene extends Phaser.Scene {
         `${(this.timeToComplete - this.timedEvent.elapsed / 1000).toFixed(0)}`
       );
     }
+
+    if (CONST.GAME_OVER && !this.freezeGame) {
+      this.freezeGame = true;
+      if (this.timer) {
+        this.clock.cancelAnims();
+      }
+      this.scene.launch("GameEndScene", {
+        width: this.gameWidth,
+        height: this.gameHeight,
+        win: CONST.WIN,
+      });
+    }
   }
   private onEventTimeOver(): void {
     console.log("time over");
     CONST.GAME_OVER = true;
-    this.clock.cancelAnims();
-    this.game_over.play();
-    this.scene.launch("GameEndScene", {
-      width: this.gameWidth,
-      height: this.gameHeight,
-      win: false,
-    });
+    CONST.WIN = false;
   }
 
   private cardDown(pointer: any, gameobject: any, event: any): void {
@@ -217,7 +234,7 @@ export class GameScene extends Phaser.Scene {
       // if there are two flipped cards
       if (this.flippedCardsIndex.length === 2) {
         this.time.delayedCall(
-          this.timeCardIsVisible,
+          this.timeCardIsVisible * 1.5,
           this.checkPairMatch,
           [],
           this
@@ -245,16 +262,8 @@ export class GameScene extends Phaser.Scene {
       this.matches++;
       // count matches
       if (this.matches === this.imagesArr.length) {
-        this.finish_game.play();
         CONST.GAME_OVER = true;
-        if (this.timer) {
-          this.clock.cancelAnims();
-        }
-        this.scene.launch("GameEndScene", {
-          width: this.gameWidth,
-          height: this.gameHeight,
-          win: true,
-        });
+        CONST.WIN = true;
       } else {
         this.right_guess.play();
       }
@@ -274,6 +283,7 @@ export class GameScene extends Phaser.Scene {
         this.text.setText(`${this.displayText}${CONST.MAX_ATTEMPTS}`);
         if (CONST.MAX_ATTEMPTS === 0) {
           CONST.GAME_OVER = true;
+          CONST.WIN = false;
         }
       } else {
         CONST.ATTEMPTS++;

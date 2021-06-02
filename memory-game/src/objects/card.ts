@@ -29,7 +29,8 @@ export class Card {
     cardH: number,
     cardImgRef: number,
     cardFrontTexture: string,
-    cardBackTexture: string
+    cardBackTexture: string,
+    turnSpeed: number
   ) {
     this.scene = scene;
     this.cardW = cardW;
@@ -37,6 +38,7 @@ export class Card {
     this.cardImgRef = cardImgRef;
     this.cardFrontTexture = cardFrontTexture;
     this.cardBackTexture = cardBackTexture;
+    this.flipSpeed = turnSpeed;
 
     this.buildCard();
   }

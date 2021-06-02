@@ -6,13 +6,14 @@ export class BootScene extends Phaser.Scene {
 
   // database params
   private destroyCard: boolean;
-  private timeCardIsVisible: number = 800; // - 200ms  -> card turning time 200 ms
+  private timeCardIsVisible: number; // - 200ms  -> card turning time 200 ms
   private timer: number;
   private timeToComplete: number;
   private maxAttempts: number;
   private gameId: string | null;
   private imagesArr: string[] = [];
   private backCardId: string;
+  private totalImagesArr: number[] = [3, 6, 8, 10];
 
   constructor() {
     super({
@@ -37,6 +38,8 @@ export class BootScene extends Phaser.Scene {
 
     const get_game_str = prefix + "/api/games/game/" + this.gameId;
 
+    const turn_speed_arr = [600, 500, 400, 200];
+
     await axios
       .get(get_game_str)
       .then((resp) => {
@@ -46,7 +49,8 @@ export class BootScene extends Phaser.Scene {
         this.timeToComplete = config.time_to_complete;
         this.maxAttempts = config.max_attempts;
         this.destroyCard = config.destroy_card;
-        this.totalCards = config.total_images;
+        this.totalCards = this.totalImagesArr[config.total_images];
+        this.timeCardIsVisible = turn_speed_arr[config.turn_speed];
 
         const assets = resp.data.assets;
         const back_card_obj = assets.back_card;
@@ -88,6 +92,7 @@ export class BootScene extends Phaser.Scene {
 
   createCustom(): void {
     this.scene.start("GameScene", {
+      totalCards: this.totalCards,
       destroyCard: this.destroyCard,
       timeCardIsVisible: this.timeCardIsVisible,
       timer: this.timer,

@@ -45,6 +45,7 @@ export class BootScene extends Phaser.Scene {
         this.load.audio("drop_piece", "assets/sounds/drop.mp3");
         this.load.audio("right_place", "assets/sounds/right_place.mp3");
         this.load.audio("complete_puzzle", "assets/sounds/complete.mp3");
+        this.load.audio("incomplete_puzzle", "assets/sounds/wrong.mp3");
 
         this.load.image("bg", "assets/images/bg.jpg");
         this.load.image("star", "assets/images/star.png");
@@ -52,8 +53,11 @@ export class BootScene extends Phaser.Scene {
 
         console.log(resp.data);
 
+        // const pieces_size_arr = [150, 180, 200, 300];
+        const pieces_size_arr = [70, 90, 100, 150];
+
         const config = resp.data.config;
-        this.piecesSize = config.pieces_size;
+        this.piecesSize = pieces_size_arr[config.pieces_size];
         this.movePiecesFreely = config.move_pieces_freely;
         this.piecePositionHelper = config.piece_position_helper;
         this.backgroundPuzzleImage = config.background_puzzle_image;

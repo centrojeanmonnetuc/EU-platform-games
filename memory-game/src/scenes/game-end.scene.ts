@@ -10,6 +10,9 @@ export class GameEndScene extends Phaser.Scene {
   private circle: Phaser.GameObjects.Graphics;
   private btn: Phaser.GameObjects.Graphics;
 
+  private finish_game: Phaser.Sound.BaseSound;
+  private game_over: Phaser.Sound.BaseSound;
+
   constructor() {
     super({
       key: "GameEndScene",
@@ -136,5 +139,13 @@ export class GameEndScene extends Phaser.Scene {
     this.btn.on("pointerdown", () => {
       window.location.reload();
     });
+
+    this.finish_game = this.sound.add("finish_game");
+    this.game_over = this.sound.add("game_over");
+    if (this.win) {
+      this.finish_game.play();
+    } else {
+      this.game_over.play();
+    }
   }
 }

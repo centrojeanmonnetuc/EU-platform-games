@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AnswerObj, QuestionObj } from "../interfaces/utils.interface";
+import { QuestionObj } from "../interfaces/utils.interface";
 
 export class BootScene extends Phaser.Scene {
   // general vars
@@ -7,7 +7,11 @@ export class BootScene extends Phaser.Scene {
 
   // database params
   private questions: QuestionObj[];
+  private timer: boolean | null;
   private timeToRespQuestion: number | null;
+
+  private prefix: string = "";
+  // private prefix: string = "http://localhost";
 
   constructor() {
     super({
@@ -27,17 +31,15 @@ export class BootScene extends Phaser.Scene {
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    // const prefix = "";
-    const prefix = "http://localhost";
-
-    const get_game_str = prefix + "/api/games/game/" + this.gameId;
+    const get_game_str = this.prefix + "/api/games/game/" + this.gameId;
 
     await axios
       .get(get_game_str)
       .then((resp) => {
-        // console.log(resp.data);
+        console.log(resp.data);
         const config = resp.data.config;
         this.questions = config.questions;
+        this.timer = config.timer;
         this.timeToRespQuestion = config.time_to_resp_question;
 
         // const assets = resp.data.assets;
@@ -85,7 +87,10 @@ export class BootScene extends Phaser.Scene {
   createCustom(): void {
     this.scene.start("GameScene", {
       questions: this.questions,
+      timer: this.timer,
       timeToRespQuestion: this.timeToRespQuestion,
+      prefix: this.prefix,
+      gameId: this.gameId,
     });
   }
 }

@@ -43,7 +43,7 @@ export class GameScene extends Phaser.Scene {
 
   private depthCounter: number = 0;
 
-  private pieceLockTolerance: number = 50;
+  private pieceLockTolerance: number = 20;
   private piecesRightCoors: PieceCoor[];
 
   /**
@@ -53,6 +53,7 @@ export class GameScene extends Phaser.Scene {
   private drop_sound: Phaser.Sound.BaseSound;
   private right_sound: Phaser.Sound.BaseSound;
   private complete_sound: Phaser.Sound.BaseSound;
+  private incomplete_sound: Phaser.Sound.BaseSound;
 
   /**
    * Timer
@@ -116,8 +117,10 @@ export class GameScene extends Phaser.Scene {
 
     // piece size value in function of puzzle pieces size
     let pieceReductionValue;
-    if (this.piecesSize === 150) {
+    if (this.piecesSize < 100) {
       pieceReductionValue = 0.05;
+    } else if (this.piecesSize < 120) {
+      pieceReductionValue = 0.08;
     } else {
       pieceReductionValue = 0.1;
     }
@@ -204,6 +207,7 @@ export class GameScene extends Phaser.Scene {
     this.drop_sound = this.sound.add("drop_piece");
     this.right_sound = this.sound.add("right_place");
     this.complete_sound = this.sound.add("complete_puzzle");
+    this.incomplete_sound = this.sound.add("incomplete_puzzle");
     // // text
     let updatedText = "";
     if (this.timer) {
@@ -253,9 +257,8 @@ export class GameScene extends Phaser.Scene {
     const col = gameObject.getData("col");
     const pieceObj: Piece = arr[line * this.numHorizontalPieces + col];
 
-    const rightPosObj = this.piecesRightCoors[
-      this.numHorizontalPieces * line + col
-    ];
+    const rightPosObj =
+      this.piecesRightCoors[this.numHorizontalPieces * line + col];
 
     const pieceObjCoor: PieceCoor = {
       x: pieceObj.getPieceImage().getBounds().centerX,
@@ -323,6 +326,7 @@ export class GameScene extends Phaser.Scene {
     console.log("time over");
     CONST.GAME_OVER = true;
     this.clock.cancelAnims();
+    this.incomplete_sound.play();
 
     this.scene.launch("GameEndScene", {
       width: this.gameWidth,

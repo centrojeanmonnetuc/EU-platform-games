@@ -15,6 +15,8 @@ export class GameScene extends Phaser.Scene {
   // field and game setting
   private gameHeight: number;
   private gameWidth: number;
+  private prefix: string;
+  private gameId: string;
 
   // configs
   private containerW = 0.7;
@@ -56,7 +58,10 @@ export class GameScene extends Phaser.Scene {
     this.gameWidth = this.sys.canvas.width;
 
     this.questions = data.questions;
+    this.timer = data.timer;
     this.timeToRespQuestion = data.timeToRespQuestion;
+    this.prefix = data.prefix;
+    this.gameId = data.gameId;
 
     console.log(data);
   }
@@ -147,7 +152,7 @@ export class GameScene extends Phaser.Scene {
     );
     this.mainEmitter.on("reviewGame", this.reviewGameHandler, this);
 
-    if (this.timeToRespQuestion) {
+    if (this.timer) {
       /**
        * Clock
        */
@@ -173,7 +178,7 @@ export class GameScene extends Phaser.Scene {
     // );
   }
   update(): void {
-    if (this.timeToRespQuestion && !this.resetingClock && !CONST.GAME_OVER) {
+    if (this.timer && !this.resetingClock && !CONST.GAME_OVER) {
       this.currentTime = (
         this.timeToRespQuestion -
         this.timedEvent.elapsed / 1000
@@ -183,7 +188,7 @@ export class GameScene extends Phaser.Scene {
   }
   private onEventTimeOver(): void {
     console.log("time to respond question over");
-
+    this.wrongAnswer.play();
     this.clock.cancelAnims();
 
     this.mainEmitter.emit("selectedAnswer", null, false);
@@ -212,7 +217,7 @@ export class GameScene extends Phaser.Scene {
         this.mainEmitter.removeListener("selectedAnswer");
         CONST.GAME_OVER = true;
         // remove clock animation for the game resume
-        if (this.timeToRespQuestion) {
+        if (this.timer) {
           this.clock.cancelAnims();
           this.clock.clearClock();
           this.clock.createClock();
@@ -224,12 +229,14 @@ export class GameScene extends Phaser.Scene {
         width: this.gameWidth,
         height: this.gameHeight,
         emitter: this.mainEmitter,
+        prefix: this.prefix,
+        gameId: this.gameId,
       });
       return;
     }
 
     // Update clock
-    if (this.timeToRespQuestion && !CONST.GAME_OVER) {
+    if (this.timer && !CONST.GAME_OVER) {
       // flag that enable the update
       this.resetingClock = false;
       // timer
@@ -250,10 +257,10 @@ export class GameScene extends Phaser.Scene {
 
     // clear and set ANSWERS
     var answers: string[] = [];
-    answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer1);
-    answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer2);
-    answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer3);
-    answers.push(this.questions[CONST.CURRENT_QUESTION].answers.answer4);
+    answers.push(this.questions[CONST.CURRENT_QUESTION].answer1);
+    answers.push(this.questions[CONST.CURRENT_QUESTION].answer2);
+    answers.push(this.questions[CONST.CURRENT_QUESTION].answer3);
+    answers.push(this.questions[CONST.CURRENT_QUESTION].answer4);
     this.answersContainer.setAnswers(answers);
     this.answersContainer.changeAnswerAlpha(null, null, false);
 
@@ -301,7 +308,7 @@ export class GameScene extends Phaser.Scene {
       );
 
       // set time if exists
-      if (this.timeToRespQuestion) {
+      if (this.timer) {
         this.clock.updateTime(CONST.USER_TIMES[currentQuestIndex]);
       }
     } else {
@@ -322,7 +329,7 @@ export class GameScene extends Phaser.Scene {
     this.mainEmitter.removeListener("selectedAnswer");
 
     // disable time
-    if (this.timeToRespQuestion) {
+    if (this.timer) {
       // STOP CLOCK
       this.timedEvent.remove();
       // flag that disables the update
@@ -339,16 +346,16 @@ export class GameScene extends Phaser.Scene {
     if (responded) {
       // select user answer
       userAnswer = answerObj.getAnswerIndex();
-      const userAnswerInfo = questionObj.rightAnswer === userAnswer;
+      const userAnswerInfo = questionObj.right_answer === userAnswer;
       answerObj.setSelected(userAnswerInfo);
 
       // draw green border on right answer
-      this.answersContainer.drawBorderOnRightAnswer(questionObj.rightAnswer);
+      this.answersContainer.drawBorderOnRightAnswer(questionObj.right_answer);
 
       // decrease the alpha on the others answers
       this.answersContainer.changeAnswerAlpha(
         userAnswer,
-        questionObj.rightAnswer,
+        questionObj.right_answer,
         true
       );
       // play answer sound
@@ -359,11 +366,11 @@ export class GameScene extends Phaser.Scene {
       }
     } else {
       // draw green border on right answer
-      this.answersContainer.drawBorderOnRightAnswer(questionObj.rightAnswer);
+      this.answersContainer.drawBorderOnRightAnswer(questionObj.right_answer);
       // decrease the alpha on the others answers
       this.answersContainer.changeAnswerAlpha(
         null,
-        questionObj.rightAnswer,
+        questionObj.right_answer,
         true
       );
     }
@@ -374,7 +381,7 @@ export class GameScene extends Phaser.Scene {
     // save user answer
     const newAnswer: UserAnswers = {
       userIndex: userAnswer,
-      rightIndex: questionObj.rightAnswer,
+      rightIndex: questionObj.right_answer,
     };
     CONST.USER_ANSWERS.push(newAnswer);
   }

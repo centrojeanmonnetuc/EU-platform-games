@@ -31,8 +31,8 @@ export class BootScene extends Phaser.Scene {
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    // const prefix = "";
-    const prefix = "http://localhost";
+    const prefix = "";
+    // const prefix = "http://localhost";
 
     const get_game_str = prefix + "/api/games/game/" + this.gameId;
 

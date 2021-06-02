@@ -50,13 +50,13 @@ export class GameEndScene extends Phaser.Scene {
     }
     let displayText = this.add.text(0, 0, menssage, {
       fontFamily: "Arial",
-      fontSize: 32,
+      fontSize: 20,
       color: "#ffffff",
       align: "center",
     });
 
     displayText
-      .setPosition(this.gameWidth / 2, menuPosY + displayText.height * 2)
+      .setPosition(this.gameWidth / 2, menuPosY + displayText.height)
       .setOrigin(0.5);
 
     const STAR_SCALE = 0.25;
@@ -79,7 +79,7 @@ export class GameEndScene extends Phaser.Scene {
 
       let image = this.add
         .image(p.x, p.y, "star")
-        .setScale(0.1)
+        .setScale(0.1 / 2)
         .setTint(0xffcc00);
 
       // this.tweens.add({
@@ -94,8 +94,8 @@ export class GameEndScene extends Phaser.Scene {
 
       this.tweens.add({
         targets: image,
-        scaleX: STAR_SCALE / 1.6,
-        scaleY: STAR_SCALE / 1.6,
+        scaleX: STAR_SCALE / (1.6 * 2),
+        scaleY: STAR_SCALE / (1.6 * 2),
         ease: "Sine.easeInOut",
         duration: 1000,
         repeat: -1,
@@ -123,8 +123,9 @@ export class GameEndScene extends Phaser.Scene {
     });
 
     backText
-      .setPosition(this.gameWidth / 2, btnPosY + displayText.height)
-      .setOrigin(0.5);
+      .setPosition(this.gameWidth / 2, btnPosY + displayText.height / 1.5)
+      .setOrigin(0.5)
+      .setScale(0.5);
 
     var shape = new Phaser.Geom.Rectangle(
       btnPosX,
