@@ -7,4 +7,5 @@ export let CONST = {
   GAME_OVER: false,
   CURRENT_PIECES: 0,
   TOTAL_PIECES: 0,
+  WIN: false,
 };

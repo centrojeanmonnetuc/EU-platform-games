@@ -1,9 +1,13 @@
 import { Menu } from "../objects/menu";
+import axios from "axios";
 
 export class GameEndScene extends Phaser.Scene {
   private gameHeight: number;
   private gameWidth: number;
   private win: boolean;
+  private gameId: string;
+  private prefix: string;
+  private timer: number;
 
   private modal: Phaser.GameObjects.Rectangle;
   private menu: Menu;
@@ -23,6 +27,9 @@ export class GameEndScene extends Phaser.Scene {
     this.gameWidth = data.width;
     this.gameHeight = data.height;
     this.win = data.win;
+    this.gameId = data.gameId;
+    this.prefix = data.prefix;
+    this.timer = data.timer;
   }
 
   create(): void {
@@ -147,5 +154,16 @@ export class GameEndScene extends Phaser.Scene {
     } else {
       this.game_over.play();
     }
+
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-finished",
+      data: {
+        gameId: this.gameId,
+        win: this.win,
+        timer: this.timer,
+      },
+    });
   }
 }

@@ -326,8 +326,8 @@ export class Place {
     height: number
   ) {
     let obj_arr: ObjectPosition[] = [];
-    for (let i = 0; i < width; i++) {
-      for (let j = 0; j < height; j++) {
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
         if (grid[i][j] == this.empty_char) {
           obj_arr.push({ x: j, y: i });
         }

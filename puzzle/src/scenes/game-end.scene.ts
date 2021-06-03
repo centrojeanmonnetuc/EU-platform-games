@@ -1,9 +1,17 @@
+import axios from "axios";
+import { CONST } from "../const/const";
 import { Menu } from "../objects/menu";
 
 export class GameEndScene extends Phaser.Scene {
   private gameHeight: number;
   private gameWidth: number;
   private win: boolean;
+  private gameId: string;
+  private prefix: string;
+  private timer: number;
+
+  private complete_sound: Phaser.Sound.BaseSound;
+  private incomplete_sound: Phaser.Sound.BaseSound;
 
   private modal: Phaser.GameObjects.Rectangle;
   private menu: Menu;
@@ -20,9 +28,22 @@ export class GameEndScene extends Phaser.Scene {
     this.gameWidth = data.width;
     this.gameHeight = data.height;
     this.win = data.win;
+    this.gameId = data.gameId;
+    this.prefix = data.prefix;
+    this.timer = data.timer;
+
+    console.log(data);
   }
 
   create(): void {
+    this.complete_sound = this.sound.add("complete_puzzle");
+    this.incomplete_sound = this.sound.add("incomplete_puzzle");
+    if (CONST.WIN) {
+      this.complete_sound.play();
+    } else {
+      this.incomplete_sound.play();
+    }
+
     this.modal = this.add
       .rectangle(0, 0, this.gameWidth, this.gameHeight, 0x000000, 0.6)
       .setOrigin(0);
@@ -136,6 +157,17 @@ export class GameEndScene extends Phaser.Scene {
     this.btn.setInteractive(shape, Phaser.Geom.Rectangle.Contains);
     this.btn.on("pointerdown", () => {
       window.location.reload();
+    });
+
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-finished",
+      data: {
+        gameId: this.gameId,
+        win: this.win,
+        timer: this.timer,
+      },
     });
   }
 }

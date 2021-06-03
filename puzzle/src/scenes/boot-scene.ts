@@ -12,6 +12,8 @@ export class BootScene extends Phaser.Scene {
   private backgroundPuzzleImage: boolean;
   private piecePositionHelper: boolean;
   private movePiecesFreely: boolean;
+  private prefix: string = "http://localhost";
+  // private prefix: string = "";
 
   private gameId: string | null;
 
@@ -28,15 +30,21 @@ export class BootScene extends Phaser.Scene {
   }
 
   async preload(): Promise<void> {
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-opened",
+      data: {
+        gameId: this.gameId,
+      },
+    });
+
     this.load.script(
       "webfont",
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    // const prefix = "";
-    const prefix = "http://localhost";
-
-    const get_game_str = prefix + "/api/games/game/" + this.gameId;
+    const get_game_str = this.prefix + "/api/games/game/" + this.gameId;
 
     await axios
       .get(get_game_str)
@@ -71,7 +79,7 @@ export class BootScene extends Phaser.Scene {
         this.load.on("complete", () => this.createCustom());
         this.load.image(
           puzzleImage.id,
-          prefix + puzzleImage.path + puzzleImage.server_path
+          this.prefix + puzzleImage.path + puzzleImage.server_path
         );
 
         this.load.start();
@@ -92,6 +100,8 @@ export class BootScene extends Phaser.Scene {
       piecePositionHelper: this.piecePositionHelper,
       backgroundPuzzleImage: this.backgroundPuzzleImage,
       movePiecesFreely: this.movePiecesFreely,
+      prefix: this.prefix,
+      gameId: this.gameId,
     });
   }
 }

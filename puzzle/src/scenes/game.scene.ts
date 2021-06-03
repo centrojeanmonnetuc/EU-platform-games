@@ -11,9 +11,13 @@ import { Background } from "../objects/background";
 import { PiecesGenerator } from "../objects/pieces-generator";
 
 export class GameScene extends Phaser.Scene {
+  private freezeGame: boolean = false;
+
   // field and game setting
   private gameHeight: number;
   private gameWidth: number;
+  private gameId: string;
+  private prefix: string;
 
   // puzzle dimensions
   private puzzleW: number = 0.6;
@@ -52,8 +56,6 @@ export class GameScene extends Phaser.Scene {
   private select_sound: Phaser.Sound.BaseSound;
   private drop_sound: Phaser.Sound.BaseSound;
   private right_sound: Phaser.Sound.BaseSound;
-  private complete_sound: Phaser.Sound.BaseSound;
-  private incomplete_sound: Phaser.Sound.BaseSound;
 
   /**
    * Timer
@@ -80,6 +82,8 @@ export class GameScene extends Phaser.Scene {
     this.piecePositionHelper = data.piecePositionHelper;
     this.backgroundPuzzleImage = data.backgroundPuzzleImage;
     this.movePiecesFreely = data.movePiecesFreely;
+    this.gameId = data.gameId;
+    this.prefix = data.prefix;
   }
 
   create(): void {
@@ -206,8 +210,6 @@ export class GameScene extends Phaser.Scene {
     this.select_sound = this.sound.add("select");
     this.drop_sound = this.sound.add("drop_piece");
     this.right_sound = this.sound.add("right_place");
-    this.complete_sound = this.sound.add("complete_puzzle");
-    this.incomplete_sound = this.sound.add("incomplete_puzzle");
     // // text
     let updatedText = "";
     if (this.timer) {
@@ -232,6 +234,22 @@ export class GameScene extends Phaser.Scene {
       this.clock.updateTime(
         `${(this.timeToComplete - this.timedEvent.elapsed / 1000).toFixed(0)}`
       );
+    }
+
+    if (CONST.GAME_OVER && !this.freezeGame) {
+      this.freezeGame = true;
+      if (this.timer) {
+        this.clock.cancelAnims();
+      }
+
+      this.scene.launch("GameEndScene", {
+        width: this.gameWidth,
+        height: this.gameHeight,
+        win: CONST.WIN,
+        gameId: this.gameId,
+        prefix: this.prefix,
+        timer: this.timer ? (this.timedEvent.elapsed / 1000).toFixed(0) : null,
+      });
     }
   }
 
@@ -278,16 +296,8 @@ export class GameScene extends Phaser.Scene {
 
       // VERIFY END OF PUZZLE
       if (CONST.CURRENT_PIECES == CONST.TOTAL_PIECES) {
-        this.complete_sound.play();
         CONST.GAME_OVER = true;
-        this.scene.launch("GameEndScene", {
-          width: this.gameWidth,
-          height: this.gameHeight,
-          win: true,
-        });
-        if (this.timer) {
-          this.clock.cancelAnims();
-        }
+        CONST.WIN = true;
       } else {
         this.right_sound.play();
       }
@@ -325,13 +335,6 @@ export class GameScene extends Phaser.Scene {
   private onEventTimeOver(): void {
     console.log("time over");
     CONST.GAME_OVER = true;
-    this.clock.cancelAnims();
-    this.incomplete_sound.play();
-
-    this.scene.launch("GameEndScene", {
-      width: this.gameWidth,
-      height: this.gameHeight,
-      win: false,
-    });
+    CONST.WIN = false;
   }
 }

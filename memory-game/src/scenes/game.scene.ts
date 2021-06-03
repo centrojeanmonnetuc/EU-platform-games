@@ -11,6 +11,8 @@ export class GameScene extends Phaser.Scene {
   // field and game setting
   private gameHeight: number;
   private gameWidth: number;
+  private gameId: string;
+  private prefix: string;
 
   // objects
   private topBar: TopBar;
@@ -65,6 +67,8 @@ export class GameScene extends Phaser.Scene {
     this.timeToComplete = data.timeToComplete;
     this.maxAttempts = data.maxAttempts;
     this.backCardId = data.backCardId;
+    this.gameId = data.gameId;
+    this.prefix = data.prefix;
 
     switch (this.imagesArr.length) {
       case 3:
@@ -202,6 +206,9 @@ export class GameScene extends Phaser.Scene {
         width: this.gameWidth,
         height: this.gameHeight,
         win: CONST.WIN,
+        gameId: this.gameId,
+        prefix: this.prefix,
+        timer: this.timer ? (this.timedEvent.elapsed / 1000).toFixed(0) : null,
       });
     }
   }

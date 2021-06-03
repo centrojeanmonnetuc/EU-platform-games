@@ -1,14 +1,22 @@
+import { CONST } from "../const/const";
 import { Menu } from "../objects/menu";
+import axios from "axios";
 
 export class GameEndScene extends Phaser.Scene {
   private gameHeight: number;
   private gameWidth: number;
   private win: boolean;
+  private gameId: string;
+  private prefix: string;
+  private timer: number;
 
   private modal: Phaser.GameObjects.Rectangle;
   private menu: Menu;
   private circle: Phaser.GameObjects.Graphics;
   private btn: Phaser.GameObjects.Graphics;
+
+  private finish_game: Phaser.Sound.BaseSound;
+  private game_over: Phaser.Sound.BaseSound;
 
   constructor() {
     super({
@@ -20,6 +28,9 @@ export class GameEndScene extends Phaser.Scene {
     this.gameWidth = data.width;
     this.gameHeight = data.height;
     this.win = data.win;
+    this.gameId = data.gameId;
+    this.prefix = data.prefix;
+    this.timer = data.timer;
   }
 
   create(): void {
@@ -135,6 +146,26 @@ export class GameEndScene extends Phaser.Scene {
     this.btn.setInteractive(shape, Phaser.Geom.Rectangle.Contains);
     this.btn.on("pointerdown", () => {
       window.location.reload();
+    });
+
+    this.finish_game = this.sound.add("finish_game");
+    this.game_over = this.sound.add("game_over");
+
+    if (CONST.WIN) {
+      this.finish_game.play();
+    } else {
+      this.game_over.play();
+    }
+
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-finished",
+      data: {
+        gameId: this.gameId,
+        win: this.win,
+        timer: this.timer,
+      },
     });
   }
 }

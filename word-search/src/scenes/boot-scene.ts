@@ -13,6 +13,9 @@ export class BootScene extends Phaser.Scene {
   private timer: boolean;
   private time_to_complete: number;
 
+  private prefix: string = "http://localhost";
+  // private prefix: string = "";
+
   constructor() {
     super({
       key: "BootScene",
@@ -26,15 +29,21 @@ export class BootScene extends Phaser.Scene {
   }
 
   async preload(): Promise<void> {
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-opened",
+      data: {
+        gameId: this.gameId,
+      },
+    });
+
     this.load.script(
       "webfont",
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    const prefix = "";
-    // const prefix = "http://localhost";
-
-    const get_game_str = prefix + "/api/games/game/" + this.gameId;
+    const get_game_str = this.prefix + "/api/games/game/" + this.gameId;
 
     await axios
       .get(get_game_str)
@@ -80,6 +89,8 @@ export class BootScene extends Phaser.Scene {
       directions: this.directions,
       timer: this.timer,
       time_to_complete: this.time_to_complete,
+      prefix: this.prefix,
+      gameId: this.gameId,
     });
   }
 }

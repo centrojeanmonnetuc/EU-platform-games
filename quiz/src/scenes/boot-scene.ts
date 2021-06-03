@@ -26,6 +26,15 @@ export class BootScene extends Phaser.Scene {
   }
 
   async preload(): Promise<void> {
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-opened",
+      data: {
+        gameId: this.gameId,
+      },
+    });
+
     this.load.script(
       "webfont",
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"

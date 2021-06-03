@@ -13,9 +13,14 @@ import { VisualGrid } from "../objects/visual-grid";
 import { Words } from "../objects/words";
 
 export class GameScene extends Phaser.Scene {
+  private freezeGame: boolean = false;
+
   // field and game setting
   private gameHeight: number;
   private gameWidth: number;
+
+  private gameId: string;
+  private prefix: string;
 
   private num_horizontal_cells: number;
   private num_vertical_cells: number;
@@ -79,6 +84,9 @@ export class GameScene extends Phaser.Scene {
     this.directions = data.directions;
     this.timer = data.timer;
     this.time_to_complete = data.time_to_complete;
+
+    this.gameId = data.gameId;
+    this.prefix = data.prefix;
 
     // console.log(data);
   }
@@ -179,18 +187,28 @@ export class GameScene extends Phaser.Scene {
         `${(this.time_to_complete - this.timedEvent.elapsed / 1000).toFixed(0)}`
       );
     }
+
+    if (CONST.GAME_OVER && !this.freezeGame) {
+      this.freezeGame = true;
+      if (this.timer) {
+        this.clock.cancelAnims();
+      }
+
+      this.scene.launch("GameEndScene", {
+        width: this.gameWidth,
+        height: this.gameHeight,
+        win: CONST.WIN,
+        gameId: this.gameId,
+        prefix: this.prefix,
+        timer: this.timer ? (this.timedEvent.elapsed / 1000).toFixed(0) : null,
+      });
+    }
   }
 
   private onEventTimeOver(): void {
     console.log("time over");
     CONST.GAME_OVER = true;
-    this.clock.cancelAnims();
-    this.game_over.play();
-    this.scene.launch("GameEndScene", {
-      width: this.gameWidth,
-      height: this.gameHeight,
-      win: false,
-    });
+    CONST.WIN = false;
   }
 
   private wordInputHandler(data: any) {
@@ -225,16 +243,8 @@ export class GameScene extends Phaser.Scene {
       console.log(CONST.CURRENT_WORDS_D);
       console.log(CONST.TOTAL_WORDS);
       if (CONST.CURRENT_WORDS_D === CONST.TOTAL_WORDS) {
-        this.finish_game.play();
         CONST.GAME_OVER = true;
-        this.scene.launch("GameEndScene", {
-          width: this.gameWidth,
-          height: this.gameHeight,
-          win: true,
-        });
-        if (this.timer) {
-          this.clock.cancelAnims();
-        }
+        CONST.WIN = true;
       } else {
         this.right_guess.play();
       }

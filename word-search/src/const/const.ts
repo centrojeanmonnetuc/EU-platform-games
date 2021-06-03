@@ -3,4 +3,5 @@ export let CONST = {
   TOTAL_WORDS: 0,
   TIME: 0,
   GAME_OVER: false,
+  WIN: false,
 };

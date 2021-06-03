@@ -15,6 +15,9 @@ export class BootScene extends Phaser.Scene {
   private backCardId: string;
   private totalImagesArr: number[] = [3, 6, 8, 10];
 
+  private prefix: string = "http://localhost";
+  // private prefix: string = "";
+
   constructor() {
     super({
       key: "BootScene",
@@ -28,15 +31,21 @@ export class BootScene extends Phaser.Scene {
   }
 
   async preload(): Promise<void> {
+    // send info to the server that the game was initialized
+    axios({
+      method: "post",
+      url: this.prefix + "/api/games/statistics-game-opened",
+      data: {
+        gameId: this.gameId,
+      },
+    });
+
     this.load.script(
       "webfont",
       "https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"
     );
 
-    // const prefix = "";
-    const prefix = "http://localhost";
-
-    const get_game_str = prefix + "/api/games/game/" + this.gameId;
+    const get_game_str = this.prefix + "/api/games/game/" + this.gameId;
 
     const turn_speed_arr = [600, 500, 400, 200];
 
@@ -58,7 +67,7 @@ export class BootScene extends Phaser.Scene {
         this.load.on("complete", () => this.createCustom());
         this.load.image(
           back_card_obj.id,
-          prefix + back_card_obj.path + back_card_obj.server_path
+          this.prefix + back_card_obj.path + back_card_obj.server_path
         );
         this.backCardId = back_card_obj.id;
 
@@ -66,7 +75,7 @@ export class BootScene extends Phaser.Scene {
           const cardObj = assets.front_cards[i].pair;
           this.load.image(
             cardObj.id,
-            prefix + cardObj.path + cardObj.server_path
+            this.prefix + cardObj.path + cardObj.server_path
           );
 
           // push ids to arr
@@ -100,6 +109,8 @@ export class BootScene extends Phaser.Scene {
       maxAttempts: this.maxAttempts,
       imagesArr: this.imagesArr,
       backCardId: this.backCardId,
+      prefix: this.prefix,
+      gameId: this.gameId,
     });
   }
 }
