@@ -12,8 +12,8 @@ export class BootScene extends Phaser.Scene {
   private backgroundPuzzleImage: boolean;
   private piecePositionHelper: boolean;
   private movePiecesFreely: boolean;
-  private prefix: string = "http://localhost";
-  // private prefix: string = "";
+  // private prefix: string = "http://localhost";
+  private prefix: string = "";
 
   private gameId: string | null;
 

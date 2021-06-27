@@ -15,8 +15,8 @@ export class BootScene extends Phaser.Scene {
   private backCardId: string;
   private totalImagesArr: number[] = [3, 6, 8, 10];
 
-  private prefix: string = "http://localhost";
-  // private prefix: string = "";
+  // private prefix: string = "http://localhost";
+  private prefix: string = "";
 
   constructor() {
     super({

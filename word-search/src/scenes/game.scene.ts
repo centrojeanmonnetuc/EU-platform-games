@@ -206,13 +206,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onEventTimeOver(): void {
-    console.log("time over");
+    //console.log("time over");
     CONST.GAME_OVER = true;
     CONST.WIN = false;
   }
 
   private wordInputHandler(data: any) {
-    console.log(data);
+    //console.log(data);
     let match = false;
     for (const w of this.words) {
       if (w.word === data.word) {
@@ -223,8 +223,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (match) {
-      console.log("match");
-      console.log(data.gridInfo);
+      //console.log("match");
+      //console.log(data.gridInfo);
       // color cells
       for (const c of data.gridInfo) {
         this.visual.setCellColor(c.x, c.y, this.lineColor);
@@ -240,8 +240,8 @@ export class GameScene extends Phaser.Scene {
 
       // game over
       CONST.CURRENT_WORDS_D++;
-      console.log(CONST.CURRENT_WORDS_D);
-      console.log(CONST.TOTAL_WORDS);
+      //console.log(CONST.CURRENT_WORDS_D);
+      //console.log(CONST.TOTAL_WORDS);
       if (CONST.CURRENT_WORDS_D === CONST.TOTAL_WORDS) {
         CONST.GAME_OVER = true;
         CONST.WIN = true;
@@ -249,7 +249,7 @@ export class GameScene extends Phaser.Scene {
         this.right_guess.play();
       }
     } else {
-      console.log(" no match");
+      //console.log(" no match");
     }
   }
 

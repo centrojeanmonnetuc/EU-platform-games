@@ -10,6 +10,7 @@ import { Answer } from "../objects/answer";
 import { Character } from "../objects/character";
 import { QuestionNumber } from "../objects/question-number";
 import { Clock } from "../objects/clock";
+import axios from "axios";
 
 export class GameScene extends Phaser.Scene {
   // field and game setting
@@ -221,6 +222,29 @@ export class GameScene extends Phaser.Scene {
           this.clock.cancelAnims();
           this.clock.clearClock();
           this.clock.createClock();
+
+          // send info
+          // send statistics
+          const answersArr = [];
+          let counter = 0;
+          for (const ans of CONST.USER_ANSWERS) {
+            answersArr.push({
+              correct: ans.userIndex === ans.rightIndex ? true : false,
+              time_remaining: CONST.USER_TIMES.length
+                ? CONST.USER_TIMES[counter]
+                : null,
+            });
+            counter++;
+          }
+
+          axios({
+            method: "post",
+            url: this.prefix + "/api/games/statistics-quiz",
+            data: {
+              gameId: this.gameId,
+              answers: answersArr,
+            },
+          });
         }
       }
       this.buttons.enableRightBtn(false);

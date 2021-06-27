@@ -13,8 +13,8 @@ export class BootScene extends Phaser.Scene {
   private timer: boolean;
   private time_to_complete: number;
 
-  private prefix: string = "http://localhost";
-  // private prefix: string = "";
+  private prefix: string = "";
+  // private prefix: string = "http://localhost";
 
   constructor() {
     super({

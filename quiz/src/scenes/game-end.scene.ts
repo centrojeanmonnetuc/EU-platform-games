@@ -5,7 +5,6 @@ import {
   UserRightWrongAnswers,
 } from "../interfaces/utils.interface";
 import { CONST } from "../const/const";
-import axios from "axios";
 
 export class GameEndScene extends Phaser.Scene {
   private prefix: string;
@@ -84,28 +83,6 @@ export class GameEndScene extends Phaser.Scene {
       40,
       reload
     );
-    // send statistics
-
-    const answersArr = [];
-    let counter = 0;
-    for (const ans of CONST.USER_ANSWERS) {
-      answersArr.push({
-        correct: ans.userIndex === ans.rightIndex ? true : false,
-        time_remaining: CONST.USER_TIMES.length
-          ? CONST.USER_TIMES[counter]
-          : null,
-      });
-      counter++;
-    }
-
-    axios({
-      method: "post",
-      url: this.prefix + "/api/games/statistics-quiz",
-      data: {
-        gameId: this.gameId,
-        answers: answersArr,
-      },
-    });
   }
 
   private countRightAnswers(arr: UserAnswers[]): UserRightWrongAnswers {
